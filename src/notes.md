@@ -1,3 +1,13 @@
+Notes to self:
+5/27: does not decorate pages like
+https://www.mountaineers.org/locations-lodges/seattle-branch/committees/seattle-climbing-committee/course-templates/alpine-climbing-courses/basic-alpine-climbing-course/activities/seattle-basic-alpine-sig-field-trip-overnight-snow-scrambling-snoqualmie-summit-west-4
+(Really, it should)
+
+Should decorate person pages, too
+
+need to fuck around with tooltip -- how can I get box to be big enough?
+
+
 Format for https://www.mountaineers.org/members/danyel-fisher/member-activity-history.json
 
 ```json

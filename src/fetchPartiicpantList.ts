@@ -43,7 +43,7 @@ async function fetchMemberActivitiesUrls(): Promise<string> {
 // reflects the titles in
 // https://www.mountaineers.org/members/danyel-fisher/member-activity-history.json
 // (see in notes.md)
-interface Activity {
+export interface Activity {
   category: string;
   href: string;
   title: string;
@@ -52,11 +52,11 @@ interface Activity {
 }
 
 interface ActivityRoster {
-  act: Activity;
+  acthref: string;
   roster: string[];
 }
 
-type PeopleActivityMap = Map<string, Set<Activity>>;
+export type PeopleActivityMap = Map<string, Set<Activity>>;
 
 // we are called with
 // https://www.mountaineers.org/members/danyel-fisher/member-activities
@@ -103,8 +103,8 @@ export function contactFromEntry(rosterEntry: Element): string | null {
 }
 
 // we get an activity, and return the list of people on it by adding /roster-tab to it
-async function getRoster(act: Activity): Promise<ActivityRoster> {
-  const activity_roster = act.href + '/roster-tab';
+async function getRoster(acthref: string): Promise<ActivityRoster> {
+  const activity_roster = acthref + '/roster-tab';
 
   const response = await fetch(activity_roster);
   const text = await response.text(); // Get the HTML content as text
@@ -113,7 +113,7 @@ async function getRoster(act: Activity): Promise<ActivityRoster> {
   const parser = new DOMParser();
   const doc = parser.parseFromString(text, 'text/html');
 
-  const rosterEntries = [...doc.querySelectorAll('div.roster-contact')]; // .slice( 0, 5 );
+  const rosterEntries = doc.querySelectorAll('div.roster-contact');
 
   const roster: string[] = [];
   rosterEntries.forEach((rosterEntry) => {
@@ -122,7 +122,7 @@ async function getRoster(act: Activity): Promise<ActivityRoster> {
   });
 
   //  console.log(act.title, act.href, 'Found ', roster);
-  return { act, roster };
+  return { acthref, roster };
 }
 
 async function loadPeopleMapFromLocalStorage(): Promise<PeopleActivityMap> {
@@ -154,7 +154,7 @@ async function savePeopleMapToLocalStorage(
 }
 
 // assume past activities are fixed
-export async function updateParticipantList() {
+export async function updateParticipantList()  : Promise<PeopleActivityMap> {
   // const peoplemap: PeopleActivityMap = new Map<string, Set<Activity>>();
 
   // for later optimization: I've broken this into "waves". Everything in a wave can be doone in parallel,
@@ -163,33 +163,31 @@ export async function updateParticipantList() {
   // WAVE 1: get storage, get activity URLs.
   const storageResult = await chrome.storage.local.get(['activitiesList']);
 
-  var activitiesList: Activity[];
+  var cachedActivitiesList: Activity[];
   if (storageResult.activitiesList) {
-    activitiesList = storageResult.activitiesList as Activity[];
+    cachedActivitiesList = storageResult.activitiesList as Activity[];
   } else {
-    activitiesList = [];
+    cachedActivitiesList = [];
   }
   const peoplemap = await loadPeopleMapFromLocalStorage();
 
-  console.log('read from cache', peoplemap, activitiesList);
+  console.log('read from cache', peoplemap, cachedActivitiesList);
 
   const activityUrl = await fetchMemberActivitiesUrls();
   const me = new URL(activityUrl).pathname.split('/')[2];
   const liveActivitesList = await getActvities(activityUrl);
-  liveActivitesList.sort((a, b) => a.href.localeCompare(b.href));
+  const liveActivitesMap = new Map(liveActivitesList.map((a) => [a.href, a]));
+  const liveActivitySet = new Set(liveActivitesMap.keys());
 
-  const toReadList: Activity[] = [];
-  liveActivitesList.forEach((act) => {
-    if (!activitiesList.includes(act)) {
-      toReadList.push(act);
-    }
-  });
+  const cachedActivitySet = new Set(cachedActivitiesList.map((a) => a.href));
+
+  const toReadSet = liveActivitySet.difference(cachedActivitySet);
 
   // this seems wrong -- it's preinting out a rather long list
-  console.log('to read list', toReadList);
+  console.log('to read list', toReadSet);
 
   // WAVE 2: get storage, get activity URLs. Uses Promise.all. Does it parallelize?
-  const rosters = await asyncMap(toReadList, getRoster);
+  const rosters = await asyncMap([...toReadSet], getRoster);
 
   // Finally
   rosters.forEach((activityRoster) => {
@@ -198,7 +196,12 @@ export async function updateParticipantList() {
       if (!peoplemap.has(person)) {
         peoplemap.set(person, new Set<Activity>());
       }
-      peoplemap.get(person)!.add(activityRoster.act);
+      const act = liveActivitesMap.get(activityRoster.acthref);
+      if (act) {
+        peoplemap.get(person)!.add(act);
+      } else {
+        console.log("Confusing! Can't find activty", activityRoster.acthref);
+      }
     });
   });
 
@@ -206,14 +209,12 @@ export async function updateParticipantList() {
 
   chrome.storage.local
     .set({
-      'activitiesList': liveActivitesList,
+      activitiesList: liveActivitesList,
     })
     .then(() => {
       console.log('storage is set!');
     });
 
   console.log('The peoplemap at save time', peoplemap);
-}
-function flatten(peoplemap: PeopleActivityMap) {
-  throw new Error('Function not implemented.');
+  return peoplemap;
 }

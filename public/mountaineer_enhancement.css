@@ -1,0 +1,21 @@
+.tooltip {
+    white-space: pre-line; /* Preserves line breaks */
+    visibility: hidden; /* Hidden by default */
+    position: absolute;
+    background-color: #fff; /* Customize background color */
+    color: #333;         /* Customize text color */
+    padding: 5px;
+    border-radius: 3px;
+  }
+  
+  .mountaineers-annotation-participant {
+    position: relative; /* Added for absolute positioning of tooltip */
+  }
+  
+  .mountaineers-annotation-participant:hover .tooltip {
+    visibility: visible; /* Show on hover */
+    top: -25px;        /* Adjust tooltip position as needed */
+    left: 50%;
+    transform: translateX(-50%); /* Center the tooltip horizontally */
+    z-index: 1;
+}

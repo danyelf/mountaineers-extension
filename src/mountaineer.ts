@@ -1,20 +1,58 @@
-import { contactFromEntry, updateParticipantList } from './fetchPartiicpantList';
+import { PeopleActivityMap, contactFromEntry, updateParticipantList } from './fetchPartiicpantList';
 
 
-function processRosterElement(rosterEntry: Element) {
+function processRosterElement(rosterEntry: Element, peopleMap: PeopleActivityMap | null) {
   const name = contactFromEntry(rosterEntry);
-  console.log('Processing ', name);
-  const badge = document.createElement('p');
-  badge.textContent = 'foo ${name}';
-  rosterEntry.appendChild(badge);
+  console.log('Decorating ', name);
+
+  let badge : HTMLParagraphElement;
+  const maybeBadge = rosterEntry.querySelector(`div.mountaineers-annotation-participant.${name}`);
+  if( maybeBadge ) {
+    badge = maybeBadge as HTMLParagraphElement;
+  } else {
+    badge = document.createElement('p');
+    badge.classList.add("mountaineers-annotation-participant");
+    if( name)  { 
+      badge.classList.add( name ); 
+    }  
+    rosterEntry.appendChild(badge);
+  }
+
+  if(peopleMap  && name ) {
+      createHoverBadge( badge, name, peopleMap);
+  } else {
+    badge.textContent = 'checking trips in common';
+  }
 }
+ 
+
+function createHoverBadge(badge: HTMLParagraphElement, name: string, peopleMap: PeopleActivityMap) {
+  const allTrips = peopleMap!.get( name! );
+  if ( allTrips ) {
+    badge.textContent = `${allTrips?.size} trips in commmon`;
+
+    const tooltip = document.createElement('div');
+    tooltip.classList.add('tooltip');
+    const trips = allTrips ? [... allTrips] : [];
+    tooltip.textContent =  trips.map( s => `${s.title}, ${s.start}`).join('\n');
+  
+    badge.appendChild(tooltip);
+
+  } else {
+    badge.textContent = "no trips in common";
+  }
+
+
+
+}
+
 
 // looks at this page for roster-contact
 // and annotates it
-function processAllContactsOnPage() {
+function processAllContactsOnPage( peoplemap: PeopleActivityMap | null) {
   const rosterEntries = document.querySelectorAll('div.roster-contact');
   rosterEntries.forEach((rosterEntry) => {
-    processRosterElement(rosterEntry);
+    processRosterElement(rosterEntry, peoplemap);
   });
 }
 
@@ -29,7 +67,7 @@ const rosterClickedCallBack = (
       const ele = node as Element;
       if (ele.classList && ele.classList.contains('roster-contact')) {
         // NOT ROBUST -- HARD CODES ROSTER-CONTACT
-        processRosterElement(ele);
+        processRosterElement(ele, globalPeopleMap);
       }
     });
   }
@@ -46,12 +84,17 @@ const rosterClickedCallBack = (
 })();
 
 
-updateParticipantList();
+let globalPeopleMap : PeopleActivityMap | null 
+
+updateParticipantList().then( peopleMap => {
+  globalPeopleMap = peopleMap;
+  processAllContactsOnPage( peopleMap);
+})
 
 
 // might want to make all this async after updateParticipantList gets called
 // finds contacts on this page, even if we don't expand the roster
-processAllContactsOnPage();
+processAllContactsOnPage( null );
 
 const allTabs = document.querySelector('div.tabs'); // NOT ROBUST -- hard codes tabs
 if (allTabs) {
@@ -67,38 +110,3 @@ if (allTabs) {
   console.log('Unable to find tabs');
 }
 
-
-
-
-
-
-function annotatePageWithReadingTime() {
-  // this just confirms the document is being read
-  const mountainArticle = document.querySelector('article');
-  // `document.querySelector` may return null if the selector doesn't match anything.
-  if (mountainArticle) {
-    const article = mountainArticle;
-
-    const text = article.textContent!;
-    const wordMatchRegExp = /[^\s]+/g; // Regular expression
-    const words = text.matchAll(wordMatchRegExp);
-    // matchAll returns an iterator, convert to array to get word count
-    const wordCount = [...words].length;
-    const readingTime = Math.round(wordCount / 200);
-    const badge = document.createElement('p');
-    // Use the same styling as the publish information in an article's header
-    badge.classList.add('color-secondary-text', 'type--caption');
-    badge.textContent = `⏱️ ${readingTime} min read -- danyel was here`;
-
-    // Support for API reference docs
-    const heading = article.querySelector('h1');
-
-    if (heading) {
-      heading.insertAdjacentElement('afterend', badge);
-    } else {
-      console.log('no heading');
-    }
-  }
-}
-
-annotatePageWithReadingTime();

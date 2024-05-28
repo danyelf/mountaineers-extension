@@ -22,6 +22,7 @@
       "content_scripts": [
           {
             "js": ["mountaineer.js"],
+            "css": ["mountaineer_enhancement.css"],
             "matches": [
                 "https://www.mountaineers.org/activities/activities/*"
             ]
