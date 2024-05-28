@@ -24,7 +24,7 @@
             "js": ["mountaineer.js"],
             "css": ["mountaineer_enhancement.css"],
             "matches": [
-                "https://www.mountaineers.org/activities/activities/*"
+                "https://www.mountaineers.org/*"
             ]
           }      
       ]

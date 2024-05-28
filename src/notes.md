@@ -7,6 +7,10 @@ Should decorate person pages, too
 
 need to fuck around with tooltip -- how can I get box to be big enough?
 
+Should NOT:
+1- self shows as "no trips in common." Ditch it.
+2- drop THIS trip. it should be OTHER trips in common
+
 
 Format for https://www.mountaineers.org/members/danyel-fisher/member-activity-history.json
 

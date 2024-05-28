@@ -1,112 +1,68 @@
-import { PeopleActivityMap, contactFromEntry, updateParticipantList } from './fetchPartiicpantList';
+import {
+  decorateAllContactsOnPage,
+  rosterClickedCallBack,
+} from './decoratePage';
+import { updateParticipantList } from './fetchPartiicpantList';
+import { PeopleMapHolder } from './types';
 
+// send a "hello world" message to the background and wake it up
+// this doesn't actually do anything useful here
+// keeping it in case we want to communicate with the popup -- perhaps to provide stats?
+// (async () => {
+//   console.log("waking up background process!");
+//   const response = await chrome.runtime.sendMessage({greeting: "wakeup"});
+//   // do something with response here, not outside the function
+//   console.log(response);
+// })();
 
-function processRosterElement(rosterEntry: Element, peopleMap: PeopleActivityMap | null) {
-  const name = contactFromEntry(rosterEntry);
-  console.log('Decorating ', name);
+const globalPeopleMap: PeopleMapHolder = { peopleMap: null };
 
-  let badge : HTMLParagraphElement;
-  const maybeBadge = rosterEntry.querySelector(`div.mountaineers-annotation-participant.${name}`);
-  if( maybeBadge ) {
-    badge = maybeBadge as HTMLParagraphElement;
-  } else {
-    badge = document.createElement('p');
-    badge.classList.add("mountaineers-annotation-participant");
-    if( name)  { 
-      badge.classList.add( name ); 
-    }  
-    rosterEntry.appendChild(badge);
-  }
+// is user logged in?
+const isUserLoggedIn = checkLogin();
+if (!isUserLoggedIn) {
+  console.log('User is not logged in; skipping from here.');
+} else {
+  // might want to make all this async after updateParticipantList gets called
+  // finds contacts on this page, even if we don't expand the roster
+  decorateAllContactsOnPage(globalPeopleMap);
 
-  if(peopleMap  && name ) {
-      createHoverBadge( badge, name, peopleMap);
-  } else {
-    badge.textContent = 'checking trips in common';
-  }
-}
- 
+  createRosterTabObserver(globalPeopleMap);
 
-function createHoverBadge(badge: HTMLParagraphElement, name: string, peopleMap: PeopleActivityMap) {
-  const allTrips = peopleMap!.get( name! );
-  if ( allTrips ) {
-    badge.textContent = `${allTrips?.size} trips in commmon`;
-
-    const tooltip = document.createElement('div');
-    tooltip.classList.add('tooltip');
-    const trips = allTrips ? [... allTrips] : [];
-    tooltip.textContent =  trips.map( s => `${s.title}, ${s.start}`).join('\n');
-  
-    badge.appendChild(tooltip);
-
-  } else {
-    badge.textContent = "no trips in common";
-  }
-
-
-
-}
-
-
-// looks at this page for roster-contact
-// and annotates it
-function processAllContactsOnPage( peoplemap: PeopleActivityMap | null) {
-  const rosterEntries = document.querySelectorAll('div.roster-contact');
-  rosterEntries.forEach((rosterEntry) => {
-    processRosterElement(rosterEntry, peoplemap);
+  updateParticipantList().then((peopleMap) => {
+    if (peopleMap) {
+      globalPeopleMap.peopleMap = peopleMap;
+      decorateAllContactsOnPage(globalPeopleMap);
+    } else {
+      // user is not logged in
+      console.log('User is not logged in; cannot retrieve activities.');
+    }
   });
 }
 
-// does that also for the roster page
-const rosterClickedCallBack = (
-  mutationList: MutationRecord[],
-  observer: MutationObserver
-): void => {
-  // maybe not robust -- assumes new contacts appear?
-  for (const mutation of mutationList) {
-    mutation.addedNodes.forEach((node) => {
-      const ele = node as Element;
-      if (ele.classList && ele.classList.contains('roster-contact')) {
-        // NOT ROBUST -- HARD CODES ROSTER-CONTACT
-        processRosterElement(ele, globalPeopleMap);
-      }
-    });
+function checkLogin(): boolean {
+  const userMenu = document.querySelector('li.user span');
+  if (userMenu?.textContent?.includes('Log in / Join')) {
+    return false;
   }
-};
-
-
-// send a "hello world" message to the background and wake it up
-// we're in business!
-(async () => {
-  console.log("waking up background process!");
-  const response = await chrome.runtime.sendMessage({greeting: "wakeup"});
-  // do something with response here, not outside the function
-  console.log(response);
-})();
-
-
-let globalPeopleMap : PeopleActivityMap | null 
-
-updateParticipantList().then( peopleMap => {
-  globalPeopleMap = peopleMap;
-  processAllContactsOnPage( peopleMap);
-})
-
-
-// might want to make all this async after updateParticipantList gets called
-// finds contacts on this page, even if we don't expand the roster
-processAllContactsOnPage( null );
-
-const allTabs = document.querySelector('div.tabs'); // NOT ROBUST -- hard codes tabs
-if (allTabs) {
-  // I don't know how to specify that we want just the tab with "data-tab="roster_tab"
-  // but I think this is ok
-  const observerConfig: MutationObserverInit = {
-    childList: true,
-    subtree: true,
-  };
-  const observer = new MutationObserver(rosterClickedCallBack);
-  observer.observe(allTabs, observerConfig);
-} else {
-  console.log('Unable to find tabs');
+  return true;
 }
 
+// this is what react is for ;)
+// if the user clicks on a tab, a bunch of more things may appear -- some of which might be people!
+// we should annotate them
+// future optimization: is it worth searching the mutations, or might it be quick enough to just do the whole page and call it?
+function createRosterTabObserver(peopleMap: PeopleMapHolder) {
+  const allTabs = document.querySelector('div.tabs'); // NOT ROBUST -- hard codes tabs
+  if (allTabs) {
+    // I don't know how to specify that we want just the tab with "data-tab="roster_tab"
+    // but I think this is ok
+    const observerConfig: MutationObserverInit = {
+      childList: true,
+      subtree: true,
+    };
+    const observer = new MutationObserver(rosterClickedCallBack(peopleMap));
+    observer.observe(allTabs, observerConfig);
+  } else {
+    console.log('Unable to find tabs');
+  }
+}
