@@ -1,10 +1,10 @@
 import { contactFromEntry } from './fetchPartiicpantList';
-import { PeopleActivityMap, PeopleMapHolder } from './types';
+import { PeopleActivityMap, GlobalState } from './types';
 import tippy from 'tippy.js';
 
 // curries the peopleMNap so we can access it at runtime
 export const rosterClickedCallBack =
-  (peopleMapHolder: PeopleMapHolder): MutationCallback =>
+  (globalState: GlobalState): MutationCallback =>
   (mutationList: MutationRecord[], observer: MutationObserver): void => {
     // maybe not robust -- assumes new contacts appear?
     for (const mutation of mutationList) {
@@ -12,7 +12,7 @@ export const rosterClickedCallBack =
         const ele = node as Element;
         if (ele.classList && ele.classList.contains('roster-contact')) {
           // NOT ROBUST -- HARD CODES ROSTER-CONTACT
-          processRosterElement(ele, peopleMapHolder);
+          processRosterElement(ele, globalState);
         }
       });
     }
@@ -20,7 +20,7 @@ export const rosterClickedCallBack =
 
 // looks at this page for roster-contact
 // and annotates it
-export function decorateAllContactsOnPage(peoplemap: PeopleMapHolder) {
+export function decorateAllContactsOnPage(peoplemap: GlobalState) {
   const rosterEntries = document.querySelectorAll('div.roster-contact');
   rosterEntries.forEach((rosterEntry) => {
     processRosterElement(rosterEntry, peoplemap);
@@ -28,7 +28,7 @@ export function decorateAllContactsOnPage(peoplemap: PeopleMapHolder) {
 }
 
 
-export function decoratePersonPage(peopleMap: PeopleMapHolder) {
+export function decoratePersonPage(peopleMap: GlobalState) {
   if( ! peopleMap.peopleMap) {
     return;
   }
@@ -76,11 +76,11 @@ export function decoratePersonPage(peopleMap: PeopleMapHolder) {
 
 function processRosterElement(
   rosterEntry: Element,
-  peopleMapHolder: PeopleMapHolder
+  globalState: GlobalState
 ) {
   const name = contactFromEntry(rosterEntry);
 
-  if (name === peopleMapHolder.me) {
+  if (name === globalState.me) {
     return;
   }
 
@@ -103,15 +103,15 @@ function processRosterElement(
     // we're also adding a callback here
     const profileLink = rosterEntry.querySelector('a');
     profileLink!.onclick =  e => { 
-      peopleMapHolder.mostRecentlyClickedName = name;
+      globalState.mostRecentlyClickedName = name;
       console.log("set recently clicked name to ", name );
 
     };
 
   }
 
-  if (peopleMapHolder.peopleMap && name) {
-    createHoverBadge(badge, name, peopleMapHolder);
+  if (globalState.peopleMap && name) {
+    createHoverBadge(badge, name, globalState);
   } else {
     badge.textContent = 'checking trips in common';
   }
@@ -120,9 +120,9 @@ function processRosterElement(
 function createHoverBadge(
   badge: HTMLParagraphElement,
   name: string,
-  peopleMapHolder: PeopleMapHolder
+  globalState: GlobalState
 ) {
-  const allTrips = peopleMapHolder.peopleMap!.get(name!);
+  const allTrips = globalState.peopleMap!.get(name!);
   if (allTrips) {
     badge.textContent = `${allTrips?.size} trips together`;
 
@@ -131,7 +131,7 @@ function createHoverBadge(
     const trips = allTrips ? [...allTrips] : [];
 
     const contentString = trips
-    .filter( f=> f.href != peopleMapHolder.thisPage)
+    .filter( f=> f.href != globalState.thisPage)
       .map(
         (s) =>
           `<span class="title">${s.title}</span><span class="startdate">${s.start}</span>`

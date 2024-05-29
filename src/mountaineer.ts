@@ -4,7 +4,7 @@ import {
   rosterClickedCallBack,
 } from './decoratePage';
 import { updateParticipantList } from './fetchPartiicpantList';
-import { PeopleMapHolder } from './types';
+import { GlobalState } from './types';
 
 // send a "hello world" message to the background and wake it up
 // this doesn't actually do anything useful here
@@ -16,7 +16,7 @@ import { PeopleMapHolder } from './types';
 //   console.log(response);
 // })();
 
-const globalPeopleMap: PeopleMapHolder = {
+const globalPeopleMap: GlobalState = {
   peopleMap: null,
   me: '',
   thisPage: document.URL,
@@ -68,7 +68,7 @@ function checkLogin(): string | null {
 // if the user clicks on a tab, a bunch of more things may appear -- some of which might be people!
 // we should annotate them
 // future optimization: is it worth searching the mutations, or might it be quick enough to just do the whole page and call it?
-function createRosterTabObserver(peopleMap: PeopleMapHolder) {
+function createRosterTabObserver(globalState: GlobalState) {
   const allTabs = document.querySelector('div.tabs'); // NOT ROBUST -- hard codes tabs
   if (allTabs) {
     // I don't know how to specify that we want just the tab with "data-tab="roster_tab"
@@ -77,14 +77,14 @@ function createRosterTabObserver(peopleMap: PeopleMapHolder) {
       childList: true,
       subtree: true,
     };
-    const observer = new MutationObserver(rosterClickedCallBack(peopleMap));
+    const observer = new MutationObserver(rosterClickedCallBack(globalState));
     observer.observe(allTabs, observerConfig);
   } else {
     console.log('Unable to find tabs');
   }
 }
 
-function createPopupAddedObserver(peopleMap: PeopleMapHolder) {
+function createPopupAddedObserver(globalState: GlobalState) {
   const allBody = document.querySelector('body'); // NOT ROBUST -- hard codes tabs
   const observerConfig: MutationObserverInit = {
     childList: true, // when you add a child to the tree,
@@ -105,7 +105,7 @@ function createPopupAddedObserver(peopleMap: PeopleMapHolder) {
           // the lifecycle is that the poopup gets added here ..
           if (nEle.classList.contains('plone-modal-wrapper')) {
             // we now need to set a NEW observer to  watch for the wrapper to be made visible
-            createPopupVisibleObserver(nEle, peopleMap);
+            createPopupVisibleObserver(nEle, globalState);
           }
         });
         //    decoratePersonPage( peopleMap);
@@ -115,7 +115,7 @@ function createPopupAddedObserver(peopleMap: PeopleMapHolder) {
   observer.observe(allBody!, observerConfig);
 }
 
-function createPopupVisibleObserver(nEle: Element, peopleMap: PeopleMapHolder) {
+function createPopupVisibleObserver(nEle: Element, globalState: GlobalState) {
   // the wrapper should currently be set to display:none
   // we want to see it true
 
@@ -126,7 +126,7 @@ function createPopupVisibleObserver(nEle: Element, peopleMap: PeopleMapHolder) {
 
   const observer = new MutationObserver(
     (mut: MutationRecord[], o: MutationObserver) => {
-      decoratePersonPage( peopleMap);
+      decoratePersonPage( globalState );
     });
 
   observer.observe( nEle, observerConfig );

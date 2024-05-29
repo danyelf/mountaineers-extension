@@ -14,9 +14,6 @@ export async function saveActivitiesToStorage( activities: Activity[] ) {
   chrome.storage.local
   .set({
     activitiesList: activities,
-  })
-  .then(() => {
-    console.log('storage is set!');
   });
 }
 

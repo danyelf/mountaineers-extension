@@ -172,6 +172,5 @@ export async function updateParticipantList()  : Promise<PeopleActivityMap | voi
   await savePeopleMapToLocalStorage(peopleMap);
   await saveActivitiesToStorage(liveActivitesList);
 
-  console.log('The peoplemap at save time', peopleMap);
   return peopleMap;
 }

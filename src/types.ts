@@ -1,6 +1,6 @@
 export type PeopleActivityMap = Map<string, Set<Activity>>;
 
-export type PeopleMapHolder = {
+export type GlobalState = {
   peopleMap: PeopleActivityMap | null;
   me: string;
   thisPage: string,
