@@ -4,6 +4,7 @@ export type PeopleMapHolder = {
   peopleMap: PeopleActivityMap | null;
   me: string;
   thisPage: string,
+  mostRecentlyClickedName: string | null,
 }
 
 // reflects the titles in

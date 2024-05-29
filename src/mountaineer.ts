@@ -20,6 +20,7 @@ const globalPeopleMap: PeopleMapHolder = {
   peopleMap: null,
   me: '',
   thisPage: document.URL,
+  mostRecentlyClickedName: null,
 };
 
 // is user logged in?
@@ -34,7 +35,7 @@ if (!userName) {
   decorateAllContactsOnPage(globalPeopleMap);
 
   createRosterTabObserver(globalPeopleMap);
-  createPopupObserver(globalPeopleMap);
+  createPopupAddedObserver(globalPeopleMap);
 
   updateParticipantList().then((peopleMap) => {
     if (peopleMap) {
@@ -83,21 +84,51 @@ function createRosterTabObserver(peopleMap: PeopleMapHolder) {
   }
 }
 
-function createPopupObserver( peopleMap: PeopleMapHolder) {
+function createPopupAddedObserver(peopleMap: PeopleMapHolder) {
   const allBody = document.querySelector('body'); // NOT ROBUST -- hard codes tabs
-  console.log(allBody);
   const observerConfig: MutationObserverInit = {
-    childList: true, // when you add a child to the tree
+    childList: true, // when you add a child to the tree,
   };
-  const observer = new MutationObserver( (mut: MutationRecord[], o: MutationObserver) => {
-    // HERE is the problem
-    // the popup doesn't give a username for who its popped up.
-    // I could:
-    //   - half ass it (search my list of people?)
-    //   - add another field to my list of people?
-    //   - instrument the fact that they clicked the name?
-    //   maybe the name they clicked gives us enough? 
-    decoratePersonPage( peopleMap);
-  });
+  const observer = new MutationObserver(
+    (mut: MutationRecord[], o: MutationObserver) => {
+      // HERE is the problem
+      // the popup doesn't give a username for who its popped up.
+      // I could:
+      //   - half ass it (search my list of people?)
+      //   - add another field to my list of people?
+      //   - instrument the fact that they clicked the name?
+      //   maybe the name they clicked gives us enough?
+      // ignore Tippy muts
+      mut.forEach((r) => {
+        r.addedNodes.forEach((n) => {
+          const nEle = n as Element;
+          // the lifecycle is that the poopup gets added here ..
+          if (nEle.classList.contains('plone-modal-wrapper')) {
+            // we now need to set a NEW observer to  watch for the wrapper to be made visible
+            createPopupVisibleObserver(nEle, peopleMap);
+          }
+        });
+        //    decoratePersonPage( peopleMap);
+      });
+    }
+  );
   observer.observe(allBody!, observerConfig);
+}
+
+function createPopupVisibleObserver(nEle: Element, peopleMap: PeopleMapHolder) {
+  // the wrapper should currently be set to display:none
+  // we want to see it true
+
+  const observerConfig: MutationObserverInit = {
+    attributes: true,
+    attributeFilter: ['style'], // visibility = true is the new style
+  };
+
+  const observer = new MutationObserver(
+    (mut: MutationRecord[], o: MutationObserver) => {
+      decoratePersonPage( peopleMap);
+    });
+
+  observer.observe( nEle, observerConfig );
+
 }

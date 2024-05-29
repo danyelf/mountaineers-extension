@@ -33,12 +33,21 @@ export function decoratePersonPage(peopleMap: PeopleMapHolder) {
     return;
   }
 
-  const person = document.URL.split('/').slice(-1)[0];
+  let person: string | null ;
+  if( document.URL.includes('/members/')) {
+    person = document.URL.split('/').slice(-1)[0];
+  } else {
+    person = peopleMap.mostRecentlyClickedName;
+  }
+
+  if( ! person ) {
+    console.log("No person; returning");
+  }
   // find the email
   const profile = document.querySelector('.profile-details');
   const parent = profile?.parentNode;
 
-  const activities = peopleMap.peopleMap.get( person );
+  const activities = peopleMap.peopleMap.get( person! );
   if( activities ) {
     var div = document.createElement('div');
     div.classList.add('trips-in-common');
@@ -48,9 +57,12 @@ export function decoratePersonPage(peopleMap: PeopleMapHolder) {
     var list = document.createElement('ul');
     activities.forEach( act => {
       const li = document.createElement('li');
+      const span = document.createElement('span');
+      span.innerText = act.start + " - " ;
       const ahref = document.createElement('a');
       ahref.href = act.href;
       ahref.innerText = act.title;
+      li.appendChild( span );
       li.appendChild( ahref );
       list.appendChild(li);
     });
@@ -77,14 +89,25 @@ function processRosterElement(
     `.mountaineers-annotation-participant.${name}`
   );
   if (maybeBadge) {
+    // we have an existing badge
     badge = maybeBadge as HTMLParagraphElement;
   } else {
+    // this is the first time we've looked at this
     badge = document.createElement('p');
     badge.classList.add('mountaineers-annotation-participant');
     if (name) {
       badge.classList.add(name);
     }
     rosterEntry.appendChild(badge);
+
+    // we're also adding a callback here
+    const profileLink = rosterEntry.querySelector('a');
+    profileLink!.onclick =  e => { 
+      peopleMapHolder.mostRecentlyClickedName = name;
+      console.log("set recently clicked name to ", name );
+
+    };
+
   }
 
   if (peopleMapHolder.peopleMap && name) {

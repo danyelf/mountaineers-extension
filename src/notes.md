@@ -1,6 +1,5 @@
 Notes to self:
 
-Should decorate person pages, too.
 these are funky because they're an overlay
 They appear in a new div class "plone-modal-dialog"
 We want to put our annotations, say, right belopw his "div class=email"
@@ -9,10 +8,10 @@ I thnk we want it to Observe the relevant event -- but what is it?
 Perhaps useful: when we click on them, it fires off an ajax req
   the Plone appears as a new child of <body> -- DIV CLASS = plone-modal-wrapper
 
-Easier: the Member page
-https://www.mountaineers.org/members/danyel-fisher
+--
 
-
+This whole thing really begs for React
+We could definitley make the page more robust
 
 ---
 
