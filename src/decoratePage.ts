@@ -1,6 +1,6 @@
-import {  contactFromEntry } from './fetchPartiicpantList';
+import { contactFromEntry } from './fetchPartiicpantList';
 import { PeopleActivityMap, PeopleMapHolder } from './types';
-
+import tippy from 'tippy.js';
 
 // curries the peopleMNap so we can access it at runtime
 export const rosterClickedCallBack =
@@ -18,25 +18,63 @@ export const rosterClickedCallBack =
     }
   };
 
-  // looks at this page for roster-contact
+// looks at this page for roster-contact
 // and annotates it
-export function decorateAllContactsOnPage( peoplemap: PeopleMapHolder) {
+export function decorateAllContactsOnPage(peoplemap: PeopleMapHolder) {
   const rosterEntries = document.querySelectorAll('div.roster-contact');
   rosterEntries.forEach((rosterEntry) => {
     processRosterElement(rosterEntry, peoplemap);
   });
 }
 
+
+export function decoratePersonPage(peopleMap: PeopleMapHolder) {
+  if( ! peopleMap.peopleMap) {
+    return;
+  }
+
+  const person = document.URL.split('/').slice(-1)[0];
+  // find the email
+  const profile = document.querySelector('.profile-details');
+  const parent = profile?.parentNode;
+
+  const activities = peopleMap.peopleMap.get( person );
+  if( activities ) {
+    var div = document.createElement('div');
+    div.classList.add('trips-in-common');
+    var header = document.createElement('h6');
+    header.textContent = "Your Trips in Common"
+    div.appendChild(header);
+    var list = document.createElement('ul');
+    activities.forEach( act => {
+      const li = document.createElement('li');
+      const ahref = document.createElement('a');
+      ahref.href = act.href;
+      ahref.innerText = act.title;
+      li.appendChild( ahref );
+      list.appendChild(li);
+    });
+    div.appendChild(list);
+    parent?.insertBefore( div, profile! );
+  }
+
+  // add activities statically blow it.
+}
+
+
 function processRosterElement(
   rosterEntry: Element,
   peopleMapHolder: PeopleMapHolder
 ) {
   const name = contactFromEntry(rosterEntry);
-  console.log('Decorating ', name);
+
+  if (name === peopleMapHolder.me) {
+    return;
+  }
 
   let badge: HTMLParagraphElement;
   const maybeBadge = rosterEntry.querySelector(
-    `div.mountaineers-annotation-participant.${name}`
+    `.mountaineers-annotation-participant.${name}`
   );
   if (maybeBadge) {
     badge = maybeBadge as HTMLParagraphElement;
@@ -50,7 +88,7 @@ function processRosterElement(
   }
 
   if (peopleMapHolder.peopleMap && name) {
-    createHoverBadge(badge, name, peopleMapHolder.peopleMap);
+    createHoverBadge(badge, name, peopleMapHolder);
   } else {
     badge.textContent = 'checking trips in common';
   }
@@ -59,19 +97,29 @@ function processRosterElement(
 function createHoverBadge(
   badge: HTMLParagraphElement,
   name: string,
-  peopleMap: PeopleActivityMap
+  peopleMapHolder: PeopleMapHolder
 ) {
-  const allTrips = peopleMap!.get(name!);
+  const allTrips = peopleMapHolder.peopleMap!.get(name!);
   if (allTrips) {
-    badge.textContent = `${allTrips?.size} trips in commmon`;
+    badge.textContent = `${allTrips?.size} trips together`;
 
     const tooltip = document.createElement('div');
     tooltip.classList.add('tooltip');
     const trips = allTrips ? [...allTrips] : [];
-    tooltip.textContent = trips.map((s) => `${s.title}, ${s.start}`).join('\n');
 
-    badge.appendChild(tooltip);
+    const contentString = trips
+    .filter( f=> f.href != peopleMapHolder.thisPage)
+      .map(
+        (s) =>
+          `<span class="title">${s.title}</span><span class="startdate">${s.start}</span>`
+      )
+      .join('<br>');
+
+    tippy(`.mountaineers-annotation-participant.${name}`, {
+      content: contentString,
+      allowHTML: true,
+    });
   } else {
-    badge.textContent = 'no trips in common';
+    badge.textContent = '-';
   }
 }

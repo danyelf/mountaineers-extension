@@ -1,21 +1,55 @@
 .tooltip {
-    white-space: pre-line; /* Preserves line breaks */
+    /* white-space: pre-line; /* Preserves line breaks */
     visibility: hidden; /* Hidden by default */
-    position: absolute;
+    position: relative;
     background-color: #fff; /* Customize background color */
     color: #333;         /* Customize text color */
-    padding: 5px;
+    padding: 6px;
+    
     border-radius: 3px;
-  }
+    border-color: black;
+    border-style: solid;
+    border-width: thin;
+
+    font-size: 11px;
+    font-style:normal;
+    font-weight: 700;
+    font-family: Interstate, sans-serif
+    }
   
   .mountaineers-annotation-participant {
     position: relative; /* Added for absolute positioning of tooltip */
   }
+
+
+.tooltip span.title::after{
+  content: ' - ';
+}
+
+.tooltip span.startdate {
+  font-weight: normal;
+}
+
+.tippy-box {
+  background-color: #fff; /* Customize background color */
+  color: #333;         /* Customize text color */
+  padding: 6px;
   
-  .mountaineers-annotation-participant:hover .tooltip {
-    visibility: visible; /* Show on hover */
-    top: -25px;        /* Adjust tooltip position as needed */
-    left: 50%;
-    transform: translateX(-50%); /* Center the tooltip horizontally */
-    z-index: 1;
+  border-radius: 3px;
+  border-color: black;
+  border-style: solid;
+  border-width: thin;
+
+  font-size: 11px;
+  font-style:normal;
+  font-weight: 700;
+  font-family: Interstate, sans-serif
+}
+
+.tippy-box span.title::after {
+  content: ' - ';
+}
+
+.tippy-box span.startdate {
+  font-weight: normal;
 }

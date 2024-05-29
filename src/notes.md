@@ -1,16 +1,23 @@
 Notes to self:
-5/27: does not decorate pages like
-https://www.mountaineers.org/locations-lodges/seattle-branch/committees/seattle-climbing-committee/course-templates/alpine-climbing-courses/basic-alpine-climbing-course/activities/seattle-basic-alpine-sig-field-trip-overnight-snow-scrambling-snoqualmie-summit-west-4
-(Really, it should)
 
-Should decorate person pages, too
+Should decorate person pages, too.
+these are funky because they're an overlay
+They appear in a new div class "plone-modal-dialog"
+We want to put our annotations, say, right belopw his "div class=email"
 
-need to fuck around with tooltip -- how can I get box to be big enough?
+I thnk we want it to Observe the relevant event -- but what is it?
+Perhaps useful: when we click on them, it fires off an ajax req
+  the Plone appears as a new child of <body> -- DIV CLASS = plone-modal-wrapper
 
-Should NOT:
-1- self shows as "no trips in common." Ditch it.
-2- drop THIS trip. it should be OTHER trips in common
+Easier: the Member page
+https://www.mountaineers.org/members/danyel-fisher
 
+
+
+---
+
+
+Note that this assumes that ME is always the same. Will break badly if > 1 person logs in.
 
 Format for https://www.mountaineers.org/members/danyel-fisher/member-activity-history.json
 

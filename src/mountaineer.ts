@@ -1,5 +1,6 @@
 import {
   decorateAllContactsOnPage,
+  decoratePersonPage,
   rosterClickedCallBack,
 } from './decoratePage';
 import { updateParticipantList } from './fetchPartiicpantList';
@@ -15,23 +16,31 @@ import { PeopleMapHolder } from './types';
 //   console.log(response);
 // })();
 
-const globalPeopleMap: PeopleMapHolder = { peopleMap: null };
+const globalPeopleMap: PeopleMapHolder = {
+  peopleMap: null,
+  me: '',
+  thisPage: document.URL,
+};
 
 // is user logged in?
-const isUserLoggedIn = checkLogin();
-if (!isUserLoggedIn) {
+const userName = checkLogin();
+if (!userName) {
   console.log('User is not logged in; skipping from here.');
 } else {
+  globalPeopleMap.me = userName;
+
   // might want to make all this async after updateParticipantList gets called
   // finds contacts on this page, even if we don't expand the roster
   decorateAllContactsOnPage(globalPeopleMap);
 
   createRosterTabObserver(globalPeopleMap);
+  createPopupObserver(globalPeopleMap);
 
   updateParticipantList().then((peopleMap) => {
     if (peopleMap) {
       globalPeopleMap.peopleMap = peopleMap;
       decorateAllContactsOnPage(globalPeopleMap);
+      decoratePersonPage(globalPeopleMap);
     } else {
       // user is not logged in
       console.log('User is not logged in; cannot retrieve activities.');
@@ -39,12 +48,19 @@ if (!isUserLoggedIn) {
   });
 }
 
-function checkLogin(): boolean {
+// TODO: FRAGILE
+// returns the username iflogged in, null if not
+function checkLogin(): string | null {
   const userMenu = document.querySelector('li.user span');
   if (userMenu?.textContent?.includes('Log in / Join')) {
-    return false;
+    return null;
   }
-  return true;
+  const loggedInUserA = document.querySelector(
+    'li.user li a'
+  ) as HTMLLinkElement;
+  const ref = loggedInUserA.href;
+  const usernameArr = ref.split('/');
+  return usernameArr[usernameArr.length - 1];
 }
 
 // this is what react is for ;)
@@ -65,4 +81,23 @@ function createRosterTabObserver(peopleMap: PeopleMapHolder) {
   } else {
     console.log('Unable to find tabs');
   }
+}
+
+function createPopupObserver( peopleMap: PeopleMapHolder) {
+  const allBody = document.querySelector('body'); // NOT ROBUST -- hard codes tabs
+  console.log(allBody);
+  const observerConfig: MutationObserverInit = {
+    childList: true, // when you add a child to the tree
+  };
+  const observer = new MutationObserver( (mut: MutationRecord[], o: MutationObserver) => {
+    // HERE is the problem
+    // the popup doesn't give a username for who its popped up.
+    // I could:
+    //   - half ass it (search my list of people?)
+    //   - add another field to my list of people?
+    //   - instrument the fact that they clicked the name?
+    //   maybe the name they clicked gives us enough? 
+    decoratePersonPage( peopleMap);
+  });
+  observer.observe(allBody!, observerConfig);
 }

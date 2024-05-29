@@ -17,7 +17,10 @@ import { asyncMap } from './util';
 //          e.g. https://www.mountaineers.org/members/danyel-fisher/member-activities
 
 // loads the page, returns activityUrl
+// TODO: fragile
 async function fetchMemberActivitiesUrls(): Promise<string> {
+  // TODO: since we now know the username, we can skip a step here and just jump to their
+  // activities page
   const response = await fetch('https://www.mountaineers.org');
   const text = await response.text(); // Get the HTML content as text
 

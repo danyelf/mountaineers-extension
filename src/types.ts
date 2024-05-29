@@ -2,6 +2,8 @@ export type PeopleActivityMap = Map<string, Set<Activity>>;
 
 export type PeopleMapHolder = {
   peopleMap: PeopleActivityMap | null;
+  me: string;
+  thisPage: string,
 }
 
 // reflects the titles in
