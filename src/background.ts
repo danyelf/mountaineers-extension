@@ -1,6 +1,5 @@
 console.log('hello, world from background!');
 
-
 function actOnMessage(
   request: any,
   sender: chrome.runtime.MessageSender,

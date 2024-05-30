@@ -15,6 +15,9 @@ We could definitley make the page more robust
 
 ---
 
+https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Build_a_cross_browser_extension
+
+--
 
 Note that this assumes that ME is always the same. Will break badly if > 1 person logs in.
 

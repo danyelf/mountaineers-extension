@@ -7,8 +7,11 @@
 // add to storage soimething like
 // [ { person:  person , [ {name: activity_name, url: activity_rul }]} ]
 
-import { loadPeopleMapAndActivitiesFromLocalStorage, saveActivitiesToStorage, savePeopleMapToLocalStorage } from './storage';
-import { Activity, PeopleActivityMap } from './types';
+import {
+  loadPeopleMapAndActivitiesFromLocalStorage,
+  savePeopleMapAndActivitiesToLocalStorage,
+} from './storage';
+import { Activity, GlobalState, PeopleActivityMap } from './types';
 import { asyncMap } from './util';
 
 //     how do I find MY activities page?
@@ -16,40 +19,10 @@ import { asyncMap } from './util';
 //          one choice: search throuigh  all hrefs looking for /member-activities
 //          e.g. https://www.mountaineers.org/members/danyel-fisher/member-activities
 
-// loads the page, returns activityUrl
-// TODO: fragile
-async function fetchMemberActivitiesUrls(): Promise<string> {
-  // TODO: since we now know the username, we can skip a step here and just jump to their
-  // activities page
-  const response = await fetch('https://www.mountaineers.org');
-  const text = await response.text(); // Get the HTML content as text
-
-  // Parse the HTML to find the links
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(text, 'text/html');
-
-  // Select all anchor tags (links)
-  const links = doc.querySelectorAll('a');
-
-  // Filter the links to find the ones we're interested in
-  const memberActivitiesUrls: string[] = [];
-  links.forEach((link) => {
-    const href = link.getAttribute('href');
-    if (href && href.endsWith('/member-activities')) {
-      memberActivitiesUrls.push(href); // Add the URL to our result array
-    }
-  });
-
-
-  return memberActivitiesUrls[0];
-}
-
-
 interface ActivityRoster {
   acthref: string;
   roster: string[];
 }
-
 
 // we are called with
 // https://www.mountaineers.org/members/danyel-fisher/member-activities
@@ -96,7 +69,7 @@ export function contactFromEntry(rosterEntry: Element): string | null {
 }
 
 // we get an activity, and return the list of people on it by adding /roster-tab to it
-async function getRoster(acthref: string): Promise<ActivityRoster> {
+async function getRosterForActivity(acthref: string): Promise<ActivityRoster> {
   const activity_roster = acthref + '/roster-tab';
 
   const response = await fetch(activity_roster);
@@ -118,40 +91,41 @@ async function getRoster(acthref: string): Promise<ActivityRoster> {
   return { acthref, roster };
 }
 
-
 // assume past activities are fixed
-export async function updateParticipantList()  : Promise<PeopleActivityMap | void > {
-  // const peoplemap: PeopleActivityMap = new Map<string, Set<Activity>>();
+export async function updateParticipantList(
+  me: string  // my name
+): Promise<PeopleActivityMap | void> {
 
-  // for later optimization: I've broken this into "waves". Everything in a wave can be doone in parallel,
-  // but right now has lots of AWAIT in it
+  const { lastActivityCheck, peopleMap, cachedActivitiesList } =
+    await loadPeopleMapAndActivitiesFromLocalStorage();
 
-  // WAVE 1: get storage, get activity URLs.
+  console.log(
+    'read from cache',
+    lastActivityCheck,
+    peopleMap,
+    cachedActivitiesList
+  );
 
-  // TODO: unify or paralelize these
-  const { peopleMap, cachedActivitiesList}  = await loadPeopleMapAndActivitiesFromLocalStorage();
-
-  console.log('read from cache', peopleMap, cachedActivitiesList);
-
-  const activityUrl = await fetchMemberActivitiesUrls();
-  if(! activityUrl) {
-    // user is not logged in. We can stop here. maybe send a message to the plugin icon
-    return;
+  if (Date.now() - lastActivityCheck < 60 * 60 * 1000) {
+    // data is pretty new
+    return peopleMap;
   }
-  const me = new URL(activityUrl).pathname.split('/')[2];
+
+  // check current activity set
+
+  const activityUrl = `https://www.mountaineers.org/members/${me}/member-activities`;
+
+  const currentTime = Date.now();
   const liveActivitesList = await getActvities(activityUrl);
+
   const liveActivitesMap = new Map(liveActivitesList.map((a) => [a.href, a]));
   const liveActivitySet = new Set(liveActivitesMap.keys());
 
   const cachedActivitySet = new Set(cachedActivitiesList.map((a) => a.href));
-
   const toReadSet = liveActivitySet.difference(cachedActivitySet);
 
-  // this seems wrong -- it's preinting out a rather long list
-  console.log('to read list', toReadSet);
-
   // WAVE 2: get storage, get activity URLs. Uses Promise.all. Does it parallelize?
-  const rosters = await asyncMap([...toReadSet], getRoster);
+  const rosters = await asyncMap([...toReadSet], getRosterForActivity);
 
   // Finally
   rosters.forEach((activityRoster) => {
@@ -169,8 +143,11 @@ export async function updateParticipantList()  : Promise<PeopleActivityMap | voi
     });
   });
 
-  await savePeopleMapToLocalStorage(peopleMap);
-  await saveActivitiesToStorage(liveActivitesList);
+  await savePeopleMapAndActivitiesToLocalStorage(
+    currentTime,
+    peopleMap,
+    liveActivitesList
+  );
 
   return peopleMap;
 }

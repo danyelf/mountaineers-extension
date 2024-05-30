@@ -5,6 +5,6 @@
     "lib": ["ES2023", "DOM"],
     "module": "commonjs",
     "esModuleInterop": true,
-    "strict": true
+    "strict": true,
   }
 }

@@ -1,4 +1,4 @@
-import { contactFromEntry } from './fetchPartiicpantList';
+import { contactFromEntry } from './fetchParticipantList';
 import { PeopleActivityMap, GlobalState } from './types';
 import tippy from 'tippy.js';
 
@@ -11,7 +11,6 @@ export const rosterClickedCallBack =
       mutation.addedNodes.forEach((node) => {
         const ele = node as Element;
         if (ele.classList && ele.classList.contains('roster-contact')) {
-          // NOT ROBUST -- HARD CODES ROSTER-CONTACT
           processRosterElement(ele, globalState);
         }
       });
@@ -21,100 +20,95 @@ export const rosterClickedCallBack =
 // looks at this page for roster-contact
 // and annotates it
 export function decorateAllContactsOnPage(peoplemap: GlobalState) {
-  const rosterEntries = document.querySelectorAll('div.roster-contact');
+  const rosterEntries = document.querySelectorAll('.roster-contact');
   rosterEntries.forEach((rosterEntry) => {
     processRosterElement(rosterEntry, peoplemap);
   });
 }
 
+export function decoratePersonPage(globalState: GlobalState) {
+  const existingAnnotation = document.querySelector('.trips-in-common');
+  if (existingAnnotation) return;
 
-export function decoratePersonPage(peopleMap: GlobalState) {
-  if( ! peopleMap.peopleMap) {
+  if (!globalState.peopleMap) {
     return;
   }
 
-  let person: string | null ;
-  if( document.URL.includes('/members/')) {
+  let person: string | null;
+  if (document.URL.includes('/members/')) {
     person = document.URL.split('/').slice(-1)[0];
   } else {
-    person = peopleMap.mostRecentlyClickedName;
+    person = globalState.mostRecentlyClickedName;
   }
 
-  if( ! person ) {
-    console.log("No person; returning");
-  }
+  if (!person) return;
+
   // find the email
   const profile = document.querySelector('.profile-details');
   const parent = profile?.parentNode;
 
-  const activities = peopleMap.peopleMap.get( person! );
-  if( activities ) {
+  const activities = globalState.peopleMap.get(person!);
+  if (activities) {
+    const htmlListItems = [...activities]
+      .map(
+        (act) =>
+          `
+      <li><span>${act.start} -</span> <a href="${act.href}">${act.title}</a></li>
+      `
+      )
+      .join('\n');
+
     var div = document.createElement('div');
     div.classList.add('trips-in-common');
-    var header = document.createElement('h6');
-    header.textContent = "Your Trips in Common"
-    div.appendChild(header);
-    var list = document.createElement('ul');
-    activities.forEach( act => {
-      const li = document.createElement('li');
-      const span = document.createElement('span');
-      span.innerText = act.start + " - " ;
-      const ahref = document.createElement('a');
-      ahref.href = act.href;
-      ahref.innerText = act.title;
-      li.appendChild( span );
-      li.appendChild( ahref );
-      list.appendChild(li);
-    });
-    div.appendChild(list);
-    parent?.insertBefore( div, profile! );
+
+    div.innerHTML = `
+      <h6>Your Trips in Common</h6>
+      <ul> 
+      ${htmlListItems}
+      </ul>
+    `;
+
+    parent?.insertBefore(div, profile!);
   }
 
   // add activities statically blow it.
 }
 
+export const badgeClickCallback = (globalState: GlobalState) => {
+  return (e: MouseEvent) => {
+    const clickTarget = e.target! as Element;
+    const rosterEntry = clickTarget.parentElement;
+    const name = contactFromEntry(rosterEntry!);
+    globalState.mostRecentlyClickedName = name!;
+    console.log(name);
+  };
+};
 
-function processRosterElement(
-  rosterEntry: Element,
-  globalState: GlobalState
-) {
+function processRosterElement(rosterEntry: Element, globalState: GlobalState) {
   const name = contactFromEntry(rosterEntry);
 
-  if (name === globalState.me) {
+  if (!globalState.peopleMap || !name || name === globalState.me) {
     return;
   }
 
   let badge: HTMLParagraphElement;
-  const maybeBadge = rosterEntry.querySelector(
+  const existingBadge = rosterEntry.querySelector(
     `.mountaineers-annotation-participant.${name}`
   );
-  if (maybeBadge) {
-    // we have an existing badge
-    badge = maybeBadge as HTMLParagraphElement;
-  } else {
-    // this is the first time we've looked at this
-    badge = document.createElement('p');
-    badge.classList.add('mountaineers-annotation-participant');
-    if (name) {
-      badge.classList.add(name);
-    }
-    rosterEntry.appendChild(badge);
+  if (existingBadge) return;
 
-    // we're also adding a callback here
-    const profileLink = rosterEntry.querySelector('a');
-    profileLink!.onclick =  e => { 
-      globalState.mostRecentlyClickedName = name;
-      console.log("set recently clicked name to ", name );
-
-    };
-
+  badge = document.createElement('p');
+  badge.classList.add('mountaineers-annotation-participant');
+  if (name) {
+    badge.classList.add(name);
   }
+  rosterEntry.appendChild(badge);
 
-  if (globalState.peopleMap && name) {
-    createHoverBadge(badge, name, globalState);
-  } else {
-    badge.textContent = 'checking trips in common';
-  }
+  // add a callback for the "most recently clicked" function
+  const profileLink = rosterEntry.querySelector('a');
+  profileLink!.onclick = globalState.badgeClickCallback!;
+
+  createHoverBadge(badge, name, globalState);
 }
 
 function createHoverBadge(
@@ -131,7 +125,7 @@ function createHoverBadge(
     const trips = allTrips ? [...allTrips] : [];
 
     const contentString = trips
-    .filter( f=> f.href != globalState.thisPage)
+      .filter((f) => f.href != globalState.thisPage)
       .map(
         (s) =>
           `<span class="title">${s.title}</span><span class="startdate">${s.start}</span>`

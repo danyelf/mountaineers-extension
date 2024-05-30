@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "@types/chrome": "^0.0.181",
+    "@types/webextension-polyfill": "^0.10.7",
     "adm-zip": "^0.5.12",
     "copy-webpack-plugin": "^10.2.4",
     "css-loader": "^6.11.0",

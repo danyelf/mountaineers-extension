@@ -1,27 +1,31 @@
 import { Activity, PeopleActivityMap } from './types';
+import { getStorage } from './storage_crossbrowser';
 
-export async function savePeopleMapToLocalStorage(
-  peopleMap: PeopleActivityMap
+export async function savePeopleMapAndActivitiesToLocalStorage(
+  lastActivityCheck: number,
+  peopleMap: PeopleActivityMap,
+  activities: Activity[]
 ): Promise<void> {
   const mapEntries = Array.from(peopleMap.entries());
   const mapArray = mapEntries.map(([key, value]) => [key, Array.from(value)]);
 
-  const itemsToStore = { peopleMap: mapArray };
-  await chrome.storage.local.set(itemsToStore);
-}
-
-export async function saveActivitiesToStorage( activities: Activity[] ) {
-  chrome.storage.local
-  .set({
+  await getStorage().set({
+    lastActivityCheck: lastActivityCheck,
+    peopleMap: mapArray,
     activitiesList: activities,
   });
 }
 
 export async function loadPeopleMapAndActivitiesFromLocalStorage(): Promise<{
-  peopleMap: PeopleActivityMap,
-  cachedActivitiesList: Activity[]
+  lastActivityCheck: number;
+  peopleMap: PeopleActivityMap;
+  cachedActivitiesList: Activity[];
 }> {
-  const storageResult = await chrome.storage.local.get(['peopleMap', 'activitiesList']); // Get specific item
+  const storageResult = await getStorage().get([
+    'lastActivityCheck',
+    'peopleMap',
+    'activitiesList',
+  ]);
 
   var peopleMap: PeopleActivityMap;
 
@@ -45,6 +49,7 @@ export async function loadPeopleMapAndActivitiesFromLocalStorage(): Promise<{
   } else {
     cachedActivitiesList = [];
   }
-  return { peopleMap, cachedActivitiesList };
-}
 
+  const lastActivityCheck = storageResult.lastActivityCheck as number;
+  return { lastActivityCheck, peopleMap, cachedActivitiesList };
+}
