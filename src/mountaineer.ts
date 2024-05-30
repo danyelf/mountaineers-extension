@@ -1,5 +1,11 @@
+window.goatcounter = {
+  endpoint: 'https://bottle-fine-inward.goatcounter.com/count',
+  no_onload: true,
+  no_events: true,
+};
+import './count';
+
 import {
-  badgeClickCallback,
   decorateAllContactsOnPage,
   decoratePersonPage,
   rosterClickedCallBack,
@@ -25,6 +31,11 @@ if (!userName) {
   console.log('User is not logged in; skipping from here.');
 } else {
   globalState.me = userName;
+
+  window.goatcounter.count({
+    path: 'extension-initialized',
+    event: true,
+  });
 
   // might want to make all this async after updateParticipantList gets called
   // finds contacts on this page, even if we don't expand the roster

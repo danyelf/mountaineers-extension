@@ -2,18 +2,24 @@ import { contactFromEntry } from './fetchParticipantList';
 import { GlobalState } from './types';
 import tippy from 'tippy.js';
 
-// curries the peopleMNap so we can access it at runtime
+// curries the peopleMap so we can access it at runtime
 export const rosterClickedCallBack =
   (globalState: GlobalState): MutationCallback =>
   (mutationList: MutationRecord[], observer: MutationObserver): void => {
     // maybe not robust -- assumes new contacts appear?
+    let count = 0;
     for (const mutation of mutationList) {
       mutation.addedNodes.forEach((node) => {
         const ele = node as Element;
         if (ele.classList && ele.classList.contains('roster-contact')) {
-          processRosterElement(ele, globalState);
+          count += processRosterElement(ele, globalState);
         }
       });
+      if (count > 0)
+        window.goatcounter.count({
+          path: 'decorate-roster',
+          event: true,
+        });
     }
   };
 
@@ -21,9 +27,15 @@ export const rosterClickedCallBack =
 // and annotates it
 export function decorateAllContactsOnPage(peoplemap: GlobalState) {
   const rosterEntries = document.querySelectorAll('.roster-contact');
+  let count = 0;
   rosterEntries.forEach((rosterEntry) => {
-    processRosterElement(rosterEntry, peoplemap);
+    count += processRosterElement(rosterEntry, peoplemap);
   });
+  if (count > 0)
+    window.goatcounter.count({
+      path: 'decorate-event',
+      event: true,
+    });
 }
 
 export function decoratePersonPage(globalState: GlobalState) {
@@ -71,7 +83,10 @@ export function decoratePersonPage(globalState: GlobalState) {
     parent?.insertBefore(div, profile!);
   }
 
-  // add activities statically blow it.
+  window.goatcounter.count({
+    path: 'personpage-annotated',
+    event: true,
+  });
 }
 
 export const badgeClickCallback = (globalState: GlobalState) => {
@@ -83,18 +98,21 @@ export const badgeClickCallback = (globalState: GlobalState) => {
   };
 };
 
-function processRosterElement(rosterEntry: Element, globalState: GlobalState) {
+function processRosterElement(
+  rosterEntry: Element,
+  globalState: GlobalState
+): number {
   const name = contactFromEntry(rosterEntry);
 
   if (!globalState.peopleMap || !name || name === globalState.me) {
-    return;
+    return 0;
   }
 
   let badge: HTMLParagraphElement;
   const existingBadge = rosterEntry.querySelector(
     `.mountaineers-annotation-participant.${name}`
   );
-  if (existingBadge) return;
+  if (existingBadge) return 0;
 
   badge = document.createElement('p');
   badge.classList.add('mountaineers-annotation-participant');
@@ -108,6 +126,7 @@ function processRosterElement(rosterEntry: Element, globalState: GlobalState) {
   profileLink!.onclick = globalState.badgeClickCallback!;
 
   createHoverBadge(badge, name, globalState);
+  return 1;
 }
 
 function createHoverBadge(

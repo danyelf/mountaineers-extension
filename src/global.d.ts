@@ -1,8 +1,7 @@
-export {}
+export {};
 
 declare global {
-    interface browser {
-      storage?: any;
-    }
+  interface Window {
+    goatcounter: any;
   }
-  
+}
