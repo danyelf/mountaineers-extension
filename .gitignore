@@ -13,4 +13,6 @@ npm-debug.log*
 
 # packed files
 /release
+/web-ext-artifacts
+
 trips-in-common.zip
