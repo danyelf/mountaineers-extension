@@ -1,7 +1,7 @@
 {
-  "name": "learn-extension",
-  "version": "0.1.0",
-  "description": "My Chrome Extension",
+  "name": "trips-in-common",
+  "version": "0.0.0.1",
+  "description": "Mountaineer Trips In Common (BETA)",
   "private": true,
   "scripts": {
     "watch": "webpack --mode=development --watch --config config/webpack.config.js",
