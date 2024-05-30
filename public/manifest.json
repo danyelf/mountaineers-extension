@@ -1,32 +1,27 @@
 {
-    "manifest_version": 3,
-    "name": "Mountaineer Trips In Common",
-    "description": "Example from https://developer.chrome.com/docs/extensions/get-started/tutorial/scripts-on-every-tab",
-    "version": "1.0",
-    "icons": {
-        "16": "icons/icon_16.png",
-        "32": "icons/icon_32.png",
-        "48": "icons/icon_48.png",
-        "128": "icons/icon_128.png"
-      },
-      "action": {
-        "default_popup": "popup.html"
-      },    
-      "background": {
-        "service_worker": "background.js",
-        "type": "module"
-      },
-      "permissions": [
-        "storage"
-      ],
-      "content_scripts": [
-          {
-            "js": ["mountaineer.js"],
-            "css": ["mountaineer_enhancement.css"],
-            "matches": [
-                "https://www.mountaineers.org/*"
-            ]
-          }      
-      ]
+  "manifest_version": 3,
+  "name": "Mountaineer Trips In Common",
+  "description": "Shows Mountaineers events in common with the other people on a trip.",
+  "version": "0.0.0.1",
+  "icons": {
+    "16": "icons/icon_16.png",
+    "32": "icons/icon_32.png",
+    "48": "icons/icon_48.png",
+    "128": "icons/icon_128.png"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "js": ["mountaineer.js"],
+      "css": ["mountaineer_enhancement.css"],
+      "matches": ["https://www.mountaineers.org/*"]
+    }
+  ]
 }
-  
