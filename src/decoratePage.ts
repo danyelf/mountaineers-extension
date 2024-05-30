@@ -1,5 +1,5 @@
 import { contactFromEntry } from './fetchParticipantList';
-import { PeopleActivityMap, GlobalState } from './types';
+import { GlobalState } from './types';
 import tippy from 'tippy.js';
 
 // curries the peopleMNap so we can access it at runtime
@@ -80,7 +80,6 @@ export const badgeClickCallback = (globalState: GlobalState) => {
     const rosterEntry = clickTarget.parentElement;
     const name = contactFromEntry(rosterEntry!);
     globalState.mostRecentlyClickedName = name!;
-    console.log(name);
   };
 };
 
@@ -125,7 +124,7 @@ function createHoverBadge(
     const trips = allTrips ? [...allTrips] : [];
 
     const contentString = trips
-      .filter((f) => f.href != globalState.thisPage)
+      //      .filter((f) => f.href != globalState.thisPage)
       .map(
         (s) =>
           `<span class="title">${s.title}</span><span class="startdate">${s.start}</span>`
