@@ -14,7 +14,7 @@ Ever tried to remember just who that person is? "Did we hike up Norse Peak toget
 
 ## Install
 
-[**Chrome** extension]() <!-- TODO: Add chrome extension link inside parenthesis -->
+[**Chrome** extension](https://chromewebstore.google.com/detail/mountaineer-trips-in-comm/naccnbaphpghakhhnppgiibdkipmhhgf?pli=1&fbclid=IwAR2Lpf07nSy4ZJNjKPNlWjUez-zMT8-5ihqwv0dHD_WjTl8n4QSrDbjzRvA)
 
 Note that the first time you run it, the extension will take a few moments to load your past trips. The more activities you have participated in, the longer this will take.
 
