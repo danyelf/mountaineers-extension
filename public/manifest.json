@@ -19,5 +19,10 @@
       "css": ["mountaineer_enhancement.css"],
       "matches": ["https://www.mountaineers.org/*"]
     }
-  ]
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "update_url": "https://raw.githubusercontent.com/danyelf/mountaineers-extension/main/updates.json"
+    }
+  }
 }
