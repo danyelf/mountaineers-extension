@@ -12,7 +12,7 @@ import {
   savePeopleMapAndActivitiesToLocalStorage,
 } from './storage';
 import { Activity, GlobalState, PeopleActivityMap } from './types';
-import { asyncMap } from './util';
+import { asyncMap, difference } from './util';
 
 //     how do I find MY activities page?
 //          start w. https://www.mountaineers.org/
@@ -93,9 +93,8 @@ async function getRosterForActivity(acthref: string): Promise<ActivityRoster> {
 
 // assume past activities are fixed
 export async function updateParticipantList(
-  me: string  // my name
+  me: string // my name
 ): Promise<PeopleActivityMap | void> {
-
   const { lastActivityCheck, peopleMap, cachedActivitiesList } =
     await loadPeopleMapAndActivitiesFromLocalStorage();
 
@@ -119,10 +118,11 @@ export async function updateParticipantList(
   const liveActivitesList = await getActvities(activityUrl);
 
   const liveActivitesMap = new Map(liveActivitesList.map((a) => [a.href, a]));
-  const liveActivitySet = new Set(liveActivitesMap.keys());
+  const liveActivitySet = [...liveActivitesMap.keys()];
 
-  const cachedActivitySet = new Set(cachedActivitiesList.map((a) => a.href));
-  const toReadSet = liveActivitySet.difference(cachedActivitySet);
+  const cachedActivitySet = cachedActivitiesList.map((a) => a.href);
+  // should be set.difference, but not in firefox
+  const toReadSet = difference(liveActivitySet, cachedActivitySet);
 
   // WAVE 2: get storage, get activity URLs. Uses Promise.all. Does it parallelize?
   const rosters = await asyncMap([...toReadSet], getRosterForActivity);
