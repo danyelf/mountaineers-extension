@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Mountaineer Trips In Common (BETA)",
   "description": "Shows Mountaineers events in common with the other people on a trip. THIS EXTENSION IS FOR BETA TESTING",
-  "version": "0.0.0.1",
+  "version": "0.0.0.2",
   "icons": {
     "16": "icons/icon_16.png",
     "32": "icons/icon_32.png",
@@ -13,6 +13,9 @@
     "default_popup": "popup.html"
   },
   "permissions": ["storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "js": ["mountaineer.js"],

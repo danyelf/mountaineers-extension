@@ -1,5 +1,5 @@
 import { contactFromEntry } from './fetchParticipantList';
-import { GlobalState } from './types';
+import { GlobalState, start } from './types';
 import tippy from 'tippy.js';
 
 // curries the peopleMap so we can access it at runtime
@@ -65,7 +65,9 @@ export function decoratePersonPage(globalState: GlobalState) {
       .map(
         (act) =>
           `
-      <li><span>${act.start} -</span> <a href="${act.href}">${act.title}</a></li>
+      <li><span>${start(act)} -</span> <a href="${act.href}">${
+            act.title
+          }</a></li>
       `
       )
       .join('\n');
@@ -74,7 +76,7 @@ export function decoratePersonPage(globalState: GlobalState) {
     div.classList.add('trips-in-common');
 
     div.innerHTML = `
-      <h6>Your Trips in Common</h6>
+      <h6>Your Activities in Common</h6>
       <ul> 
       ${htmlListItems}
       </ul>
@@ -114,6 +116,10 @@ function processRosterElement(
   );
   if (existingBadge) return 0;
 
+  // confirm there's a  linkable versionthere
+  const profileLink = rosterEntry.querySelector('a');
+  if (!profileLink) return 0;
+
   badge = document.createElement('p');
   badge.classList.add('mountaineers-annotation-participant');
   if (name) {
@@ -122,7 +128,6 @@ function processRosterElement(
   rosterEntry.appendChild(badge);
 
   // add a callback for the "most recently clicked" function
-  const profileLink = rosterEntry.querySelector('a');
   profileLink!.onclick = globalState.badgeClickCallback!;
 
   createHoverBadge(badge, name, globalState);
@@ -136,25 +141,35 @@ function createHoverBadge(
 ) {
   const allTrips = globalState.peopleMap!.get(name!);
   if (allTrips) {
-    badge.textContent = `${allTrips?.size} trips together`;
+    badge.textContent = `${allTrips?.size} activities together`;
 
     const tooltip = document.createElement('div');
     tooltip.classList.add('tooltip');
     const trips = allTrips ? [...allTrips] : [];
+    trips.sort((a, b) => a.time - b.time);
 
-    const contentString = trips
-      //      .filter((f) => f.href != globalState.thisPage)
+    const numTrips = trips.length;
+    const slicedTrips = trips.slice(0, 5);
+
+    let contentString = slicedTrips
       .map(
         (s) =>
-          `<span class="title">${s.title}</span><span class="startdate">${s.start}</span>`
+          `<span class="startdate">${start(s)}</span> - <span class="title">${
+            s.title
+          }</span>`
       )
-      .join('<br>');
+      .join('<br/>');
+    if (numTrips > 5) {
+      contentString += `<br/><span> and ${numTrips - 5} others</span>`;
+    }
 
     tippy(`.mountaineers-annotation-participant.${name}`, {
       content: contentString,
       allowHTML: true,
+      maxWidth: 400,
+      interactive: true,
     });
   } else {
-    badge.textContent = '-';
+    badge.textContent = '.';
   }
 }

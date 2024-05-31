@@ -1,17 +1,13 @@
 Notes to self:
 
-these are funky because they're an overlay
-They appear in a new div class "plone-modal-dialog"
-We want to put our annotations, say, right belopw his "div class=email"
+Some pieces I'm missing:
+https://www.mountaineers.org/activities/activities/stewardship-darrington-ranger-district-trails-29
+not all names are populating. (Why not?)
 
-I thnk we want it to Observe the relevant event -- but what is it?
-Perhaps useful: when we click on them, it fires off an ajax req
-  the Plone appears as a new child of <body> -- DIV CLASS = plone-modal-wrapper
-
---
-
-This whole thing really begs for React
-We could definitley make the page more robust
+2. In the popup list in the roster, prepend the date instead of append, like in the profile page.
+3. Popup list is a bit narrow on my desktop, and the list wraps unnecessarily. e.g. first pic.
+4. I see some inconsistent datetimes, e.g. second pic
+5. It would be cool to have hyperlinks to the activities in the popup list.
 
 ---
 
@@ -19,11 +15,10 @@ https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Build_a_c
 
 --
 
-Note that this assumes that ME is always the same. Will break badly if > 1 person logs in.
-
+Note that this assumes that ME is always the same. Will break if > 1 person logs in.
 Format for https://www.mountaineers.org/members/danyel-fisher/member-activity-history.json
 
-```json
+````json
 [
   {
     "category": "course",
@@ -49,3 +44,4 @@ Format for https://www.mountaineers.org/members/danyel-fisher/member-activity-hi
   },
 ...
 ]```
+````

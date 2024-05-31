@@ -1,13 +1,22 @@
+import {
+  loadPeopleMapAndActivitiesFromLocalStorage,
+  clearLocalStorage,
+} from './storage';
+
 console.log('hello, world from background!');
 
-function actOnMessage(
+async function actOnMessage(
   request: any,
   sender: chrome.runtime.MessageSender,
   sendResponse: (response?: any) => void
 ) {
   console.log('got sent', request);
-  if (request.greeting === 'wakeup') {    
-    sendResponse({ farewell: 'ok, getting to work' });
+  if (request.message === 'clearLocalStroage') {
+    const curStorage = await loadPeopleMapAndActivitiesFromLocalStorage();
+    console.log(curStorage);
+
+    await clearLocalStorage();
+    sendResponse({ farewell: 'ok, should be done' });
   }
 }
 

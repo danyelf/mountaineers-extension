@@ -16,6 +16,10 @@ export async function savePeopleMapAndActivitiesToLocalStorage(
   });
 }
 
+export async function clearLocalStorage(): Promise<void> {
+  getStorage().clear();
+}
+
 export async function loadPeopleMapAndActivitiesFromLocalStorage(): Promise<{
   lastActivityCheck: number;
   peopleMap: PeopleActivityMap;

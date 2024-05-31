@@ -13,15 +13,7 @@ import {
 import { updateParticipantList } from './fetchParticipantList';
 import { GlobalState } from './types';
 
-// send a "hello world" message to the background and wake it up
-// this doesn't actually do anything useful here
-// keeping it in case we want to communicate with the popup -- perhaps to provide stats?
-// (async () => {
-//   console.log("waking up background process!");
-//   const response = await browser.runtime.sendMessage({greeting: "wakeup"});
-//   // do something with response here, not outside the function
-//   console.log(response);
-// })();
+console.log(':begin:');
 
 const globalState: GlobalState = new GlobalState(document.URL);
 

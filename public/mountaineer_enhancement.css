@@ -22,14 +22,6 @@
   }
 
 
-.tooltip span.title::after{
-  content: ' - ';
-}
-
-.tooltip span.startdate {
-  font-weight: normal;
-}
-
 .tippy-box {
   background-color: #fff; /* Customize background color */
   color: #333;         /* Customize text color */
@@ -44,10 +36,6 @@
   font-style:normal;
   font-weight: 700;
   font-family: Interstate, sans-serif
-}
-
-.tippy-box span.title::after {
-  content: ' - ';
 }
 
 .tippy-box span.startdate {

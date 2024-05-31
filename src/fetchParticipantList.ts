@@ -11,7 +11,13 @@ import {
   loadPeopleMapAndActivitiesFromLocalStorage,
   savePeopleMapAndActivitiesToLocalStorage,
 } from './storage';
-import { Activity, GlobalState, PeopleActivityMap } from './types';
+import {
+  Activity,
+  GlobalState,
+  PeopleActivityMap,
+  RawActivity,
+  rawToActvitiy,
+} from './types';
 import { asyncMap, difference } from './util';
 
 //     how do I find MY activities page?
@@ -47,8 +53,11 @@ async function getActvities(activitiesUrl: string): Promise<Activity[]> {
   // console.log('inspecting', activitiesUrl);
   const correctedUrl = getMemberActivityHistoryUrl(activitiesUrl);
   const response = await fetch(correctedUrl);
-  const activities = (await response.json()) as Activity[]; // Get the HTML content as text
-  return activities.filter((a) => a.status === 'Registered');
+  const rawactivities = (await response.json()) as RawActivity[]; // Get the HTML content as text
+  const activities = rawactivities
+    .filter((a) => a.status === 'Registered')
+    .map((a) => rawToActvitiy(a));
+  return activities;
 }
 
 // given a roseter-contact, returns the core string
