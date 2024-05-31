@@ -12,6 +12,10 @@ Ever tried to remember just who that person is? "Did we hike up Norse Peak toget
 ![People Page](readme-img/peoplepage.png)
 ![Acitvity Page](readme-img/activity.png)
 
+### Version Log
+
+0.0.0.2: Still in preview. Consistent dates. Addedd "clear cache" button for debugging. Events are now clickable.
+
 ## Install
 
 [**Chrome** extension](https://chromewebstore.google.com/detail/mountaineer-trips-in-comm/naccnbaphpghakhhnppgiibdkipmhhgf?pli=1&fbclid=IwAR2Lpf07nSy4ZJNjKPNlWjUez-zMT8-5ihqwv0dHD_WjTl8n4QSrDbjzRvA)
