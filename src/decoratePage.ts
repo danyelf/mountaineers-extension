@@ -153,10 +153,10 @@ function createHoverBadge(
 
     let contentString = slicedTrips
       .map(
-        (s) =>
-          `<span class="startdate">${start(s)}</span> - <span class="title">${
-            s.title
-          }</span>`
+        (act) =>
+          `
+      <span>${start(act)} -</span> <a href="${act.href}">${act.title}</a>
+      `
       )
       .join('<br/>');
     if (numTrips > 5) {

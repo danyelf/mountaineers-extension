@@ -1,16 +1,3 @@
-Notes to self:
-
-Some pieces I'm missing:
-https://www.mountaineers.org/activities/activities/stewardship-darrington-ranger-district-trails-29
-not all names are populating. (Why not?)
-
-2. In the popup list in the roster, prepend the date instead of append, like in the profile page.
-3. Popup list is a bit narrow on my desktop, and the list wraps unnecessarily. e.g. first pic.
-4. I see some inconsistent datetimes, e.g. second pic
-5. It would be cool to have hyperlinks to the activities in the popup list.
-
----
-
 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Build_a_cross_browser_extension
 
 --
