@@ -1,6 +1,6 @@
 {
   "name": "trips-in-common",
-  "version": "0.0.0.1",
+  "version": "0.0.0.3",
   "description": "Mountaineer Trips In Common (BETA)",
   "private": true,
   "scripts": {
