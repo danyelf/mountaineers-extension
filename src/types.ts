@@ -48,3 +48,13 @@ export const rawToActvitiy = (raw: RawActivity): Activity => {
 export const start = (a: Activity): string => {
   return new Date(a.time).toDateString();
 };
+
+export enum Popup_Messages {
+  CLEAR_LOCAL_STORAGE = 'clearLocalStorage',
+  UPDATE_ICON = 'updateIcon',
+}
+
+export interface Popup_Response {
+  workingState: boolean;
+  message: string;
+}
