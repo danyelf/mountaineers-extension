@@ -2,44 +2,64 @@ import {
   loadPeopleMapAndActivitiesFromLocalStorage,
   clearLocalStorage,
 } from './storage';
-import { Popup_Messages, Popup_Response } from './types';
+import {
+  Frontend_Messages,
+  IMessage,
+  Popup_Messages,
+  Popup_Response,
+} from './types';
 
-let workingState = false;
+console.log('background is alive');
 
-console.log('hello, world from background!');
+let lastMessage: IMessage | null = null;
 
 async function actOnMessage(
   request: any,
   sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: any) => void
+  sendResponse: (response?: IMessage) => void
 ) {
   console.log('got sent', request);
 
   switch (request.message) {
+    case Popup_Messages.GET_STATUS: {
+      console.log('I was asked for status, I replied with', lastMessage);
+      //  this one is more a question than a comment
+      sendResponse(lastMessage || { message: Frontend_Messages.HELLO_WORLD });
+      break;
+    }
+
     case Popup_Messages.CLEAR_LOCAL_STORAGE: {
+      lastMessage = request;
       const curStorage = await loadPeopleMapAndActivitiesFromLocalStorage();
       console.log(curStorage);
 
       await clearLocalStorage();
-      sendResponse({ farewell: 'ok, should be cleared' });
+      const response = {
+        workingState: false,
+        message: 'ok, should be cleared',
+      } as IMessage;
+      sendResponse(response);
+      break;
     }
 
-    case Popup_Messages.UPDATE_ICON: {
-      console.log('update icon');
-      if (!workingState) {
-        showWorkingState();
-      } else {
-        showCompleteState();
-      }
+    case Frontend_Messages.NO_LOGGED_IN_USER: {
+      lastMessage = request;
+      showDeactivatedState();
+      break;
+    }
 
-      workingState = !workingState;
+    // would be nice to also show how many people or activities or something
+    case Frontend_Messages.GET_ACTIVITY_ROSTERS:
+    case Frontend_Messages.GET_ACTIVITIES: {
+      lastMessage = request;
+      showWorkingState();
+      break;
+    }
 
-      const response: Popup_Response = {
-        workingState,
-        message: 'working state',
-      };
-
-      sendResponse(response);
+    case Frontend_Messages.PEOPLE_STATUS: {
+      lastMessage = request;
+      showCompleteState();
+      break;
     }
   }
 }
@@ -48,6 +68,10 @@ chrome.runtime.onMessage.addListener(actOnMessage);
 
 // we can be  fancy!
 // https://developer.chrome.com/docs/extensions/reference/api/action
+
+function showDeactivatedState() {
+  chrome.action.setBadgeText({ text: ':(' });
+}
 
 function showCompleteState() {
   chrome.action.setBadgeText({

@@ -45,16 +45,35 @@ export const rawToActvitiy = (raw: RawActivity): Activity => {
   };
 };
 
-export const start = (a: Activity): string => {
+export const activityStartDate = (a: Activity): string => {
   return new Date(a.time).toDateString();
 };
 
+// messages the popup can send to the background
 export enum Popup_Messages {
-  CLEAR_LOCAL_STORAGE = 'clearLocalStorage',
-  UPDATE_ICON = 'updateIcon',
+  CLEAR_LOCAL_STORAGE = 'CLEAR_LOCAL_STORAGE',
+  GET_STATUS = 'GET_STATUS',
 }
 
-export interface Popup_Response {
-  workingState: boolean;
+// messages the frontend can send to the popup & background
+export enum Frontend_Messages {
+  HELLO_WORLD = 'HELLO_WORLD!',
+  NO_LOGGED_IN_USER = 'NO_LOGGED_IN_USER', // complete
+  PEOPLE_STATUS = 'PEOPLE_STATUS', // complete
+  GET_ACTIVITIES = 'GET_ACTIVITIES', // working
+  GET_ACTIVITY_ROSTERS = 'GET_ACTIVITY_ROSTERS', // working
+}
+
+export interface IMessage {
   message: string;
+}
+
+export interface Popup_Response extends IMessage {
+  workingState: boolean;
+}
+
+export interface Frontend_Message extends IMessage {
+  numPeople: number;
+  numActivities: number;
+  lastActivityCheck: number; // miliseconds
 }

@@ -1,3 +1,4 @@
+// all the fancy types aside, this is just "map a function across an iterator".
 export const asyncMap = async <ArrayItemType, IteratorReturnType>(
   array: Array<ArrayItemType>,
   iterator: (

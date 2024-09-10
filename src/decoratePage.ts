@@ -1,5 +1,5 @@
 import { contactFromEntry } from './fetchParticipantList';
-import { GlobalState, start } from './types';
+import { GlobalState, activityStartDate } from './types';
 import tippy from 'tippy.js';
 
 // curries the peopleMap so we can access it at runtime
@@ -65,7 +65,7 @@ export function decoratePersonPage(globalState: GlobalState) {
       .map(
         (act) =>
           `
-      <li><span>${start(act)} -</span> <a href="${act.href}">${
+      <li><span>${activityStartDate(act)} -</span> <a href="${act.href}">${
             act.title
           }</a></li>
       `
@@ -77,7 +77,7 @@ export function decoratePersonPage(globalState: GlobalState) {
 
     div.innerHTML = `
       <h6>Your Activities in Common</h6>
-      <ul> 
+      <ul>
       ${htmlListItems}
       </ul>
     `;
@@ -155,7 +155,9 @@ function createHoverBadge(
       .map(
         (act) =>
           `
-      <span>${start(act)} -</span> <a href="${act.href}">${act.title}</a>
+      <span>${activityStartDate(act)} -</span> <a href="${act.href}">${
+            act.title
+          }</a>
       `
       )
       .join('<br/>');

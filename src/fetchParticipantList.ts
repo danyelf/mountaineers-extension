@@ -13,7 +13,7 @@ import {
 } from './storage';
 import {
   Activity,
-  GlobalState,
+  Frontend_Messages,
   PeopleActivityMap,
   RawActivity,
   rawToActvitiy,
@@ -116,6 +116,14 @@ export async function updateParticipantList(
 
   if (Date.now() - lastActivityCheck < 60 * 60 * 1000) {
     // data is pretty new
+
+    chrome.runtime.sendMessage({
+      message: Frontend_Messages.PEOPLE_STATUS,
+      numPeople: peopleMap.size,
+      numActivities: cachedActivitiesList.length,
+      lastActivityCheck: lastActivityCheck,
+    });
+
     return peopleMap;
   }
 
@@ -124,6 +132,11 @@ export async function updateParticipantList(
   const activityUrl = `https://www.mountaineers.org/members/${me}/member-activities`;
 
   const currentTime = Date.now();
+
+  chrome.runtime.sendMessage({
+    message: Frontend_Messages.GET_ACTIVITIES,
+  });
+
   const liveActivitesList = await getActvities(activityUrl);
 
   const liveActivitesMap = new Map(liveActivitesList.map((a) => [a.href, a]));
@@ -132,6 +145,11 @@ export async function updateParticipantList(
   const cachedActivitySet = cachedActivitiesList.map((a) => a.href);
   // should be set.difference, but not in firefox
   const toReadSet = difference(liveActivitySet, cachedActivitySet);
+
+  chrome.runtime.sendMessage({
+    message: Frontend_Messages.GET_ACTIVITY_ROSTERS,
+    numActivities: liveActivitesList.length,
+  });
 
   // WAVE 2: get storage, get activity URLs. Uses Promise.all. Does it parallelize?
   const rosters = await asyncMap([...toReadSet], getRosterForActivity);
@@ -157,6 +175,13 @@ export async function updateParticipantList(
     peopleMap,
     liveActivitesList
   );
+
+  chrome.runtime.sendMessage({
+    message: Frontend_Messages.PEOPLE_STATUS,
+    numPeople: peopleMap.size,
+    numActivities: liveActivitesList.length,
+    lastActivityCheck: lastActivityCheck,
+  });
 
   return peopleMap;
 }

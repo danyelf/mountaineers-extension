@@ -11,9 +11,7 @@ import {
   rosterClickedCallBack,
 } from './decoratePage';
 import { updateParticipantList } from './fetchParticipantList';
-import { GlobalState } from './types';
-
-console.log(':begin:');
+import { Frontend_Messages, GlobalState } from './types';
 
 const globalState: GlobalState = new GlobalState(document.URL);
 
@@ -21,6 +19,9 @@ const globalState: GlobalState = new GlobalState(document.URL);
 const userName = checkLogin();
 if (!userName) {
   console.log('User is not logged in; skipping from here.');
+  chrome.runtime.sendMessage({
+    message: Frontend_Messages.NO_LOGGED_IN_USER,
+  });
 } else {
   globalState.me = userName;
 
@@ -34,6 +35,8 @@ if (!userName) {
   createRosterTabObserver(globalState);
   createPopupAddedObserver(globalState);
 
+  chrome.runtime.sendMessage({ message: Frontend_Messages.HELLO_WORLD });
+
   updateParticipantList(userName).then((peopleMap) => {
     if (peopleMap) {
       globalState.peopleMap = peopleMap;
@@ -41,6 +44,7 @@ if (!userName) {
       decoratePersonPage(globalState);
     } else {
       // user is not logged in
+
       console.log('User is not logged in; cannot retrieve activities.');
     }
   });
@@ -76,7 +80,7 @@ function createRosterTabObserver(globalState: GlobalState) {
     const observer = new MutationObserver(rosterClickedCallBack(globalState));
     observer.observe(allTabs, observerConfig);
   } else {
-    console.log('Unable to find tabs');
+    console.log('this page does not have sections marked with div.tabs');
   }
 }
 
