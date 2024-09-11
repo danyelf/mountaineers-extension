@@ -60,6 +60,7 @@ export function decoratePersonPage(globalState: GlobalState) {
   const parent = profile?.parentNode;
 
   const activities = globalState.peopleMap.get(person!);
+
   if (activities) {
     const htmlListItems = [...activities]
       .map(

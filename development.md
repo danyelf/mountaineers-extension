@@ -30,19 +30,23 @@ Current TODO list:
 - In the button, add a setting:
   [ ] Trip
   [ ] Course
+  [ ] Event
   [ ] Other
   (What are the types again?)
-  We may need to update the data store for this.
+  NOTE 24-9-10: Ooh, this is going to be subtle and annoying. Turns out that the popup can't easily speak to all the content scripts. There's a whole query / broadcast mechansim here. Some options:
 
-- Consider updating the data store format: versioning?
+  - Don't put it in the popup. Put it on the page itself (or on personal settings)
+  - Punt.
+  - Hack: consider dropping (e.g.) all events > 15 people or something
+
 - Update logging:
   - while loading: info in progress bar. (send an event every once in a while!)
   - after loaded:
     - log URL pattern for page,
 
----
+--
 
-"category": "trip",
-"category": "course",
-"category": "event",
-(there are probably others too)
+Some known issues:
+
+- Way under-tested at scale (John Bell)
+- Does not properly work for multiple people sharing a browser

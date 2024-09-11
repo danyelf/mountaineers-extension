@@ -1,4 +1,5 @@
 import {
+  ActivityTypes,
   Frontend_Message,
   Frontend_Messages,
   IMessage,
@@ -21,6 +22,8 @@ chrome.runtime.sendMessage(
   { message: Popup_Messages.GET_STATUS },
   statusCallback
 );
+
+// createCheckboxes();
 
 function statusCallback(response: any) {
   if (response) {
@@ -85,4 +88,50 @@ function clearLocalStorage() {
 
 function setText(s: string) {
   (document.querySelector('#textblock') as HTMLDivElement).innerText = s;
+}
+
+// checkboxes control which activities show
+function createCheckboxes() {
+  const container = document.getElementById('activity_selector');
+  if (container) {
+    const cbs = ActivityTypes.map((s) =>
+      createCheckbox(s, container as HTMLDivElement)
+    );
+    // this is the sort of task that React is designed for
+    cbs.forEach((box) => {
+      box.onchange = () => checkboxMessageSend(cbs);
+    });
+  }
+}
+
+function checkboxMessageSend(cbs: HTMLInputElement[]) {
+  const cbValues = cbs.map((cb) => {
+    return {
+      name: cb.name,
+      checked: cb.checked,
+    };
+  });
+  chrome.runtime.sendMessage({
+    message: Popup_Messages.FIX_CHECKBOX,
+    checkboxes: cbValues,
+  });
+}
+
+function createCheckbox(
+  name: string,
+  container: HTMLDivElement
+): HTMLInputElement {
+  const label = document.createElement('label');
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.id = 'cb_' + name;
+  checkbox.checked = true;
+  checkbox.name = name;
+  const textContent = document.createTextNode(name);
+
+  label.appendChild(checkbox);
+  label.appendChild(textContent);
+
+  container.appendChild(label);
+  return checkbox;
 }

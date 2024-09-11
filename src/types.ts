@@ -36,6 +36,8 @@ export interface Activity {
   time: number;
 }
 
+export const ActivityTypes = ['trip', 'event', 'course', 'other'];
+
 export const rawToActvitiy = (raw: RawActivity): Activity => {
   return {
     category: raw.category,
@@ -53,6 +55,7 @@ export const activityStartDate = (a: Activity): string => {
 export enum Popup_Messages {
   CLEAR_LOCAL_STORAGE = 'CLEAR_LOCAL_STORAGE',
   GET_STATUS = 'GET_STATUS',
+  FIX_CHECKBOX = 'FIX_CHECKBOX',
 }
 
 // messages the frontend can send to the popup & background

@@ -24,7 +24,11 @@ Note that the first time you run it, the extension will take a few moments to lo
 
 ## Warnings and Limitations
 
-The extension uses local browser storage. Right now, it only keeps one person's records. If you log in as someone else on the same browser, the extension will get confused and may provide incoherent results.
+The extension uses local browser storage. Right now, it only keeps one person's records. If you log in as someone else on the same browser, the extension will get confused and may provide incoherent results. It may also fall out of sync if an activity has a change in membership.
+
+This code is fragile -- as an extension, it can only see the structure of the page. It matches for a number of formatting quirks that are subject to change at any time.
+
+In a better world, the Mountaineers would replace all of this with a single database call. ;)
 
 ## A Note on Privacy
 
@@ -36,7 +40,13 @@ This extension collects anonymous usage data to track dissemination. It does not
 
 ## Behind the Scenes
 
-When you start the extension for the first tiome, and go to a Mountaineers page while logged in
+When you start the extension for the first tiome, and go to a Mountaineers page while logged in, the app does the following:
+
+- Downloads a list of all activities you've been involved in
+- For each of those activities, hops to the activity page and downloads a list of the people involved
+- Assembles a mapping: person => {activity, activity, activity}
+
+It only checks for new activities, once a day.
 
 ## Contribution
 

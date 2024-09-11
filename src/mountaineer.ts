@@ -50,6 +50,10 @@ if (!userName) {
   });
 }
 
+chrome.runtime.onMessage.addListener((msgObj) => {
+  console.log('I heard message ', msgObj);
+});
+
 // TODO: FRAGILE
 // returns the username iflogged in, null if not
 function checkLogin(): string | null {
