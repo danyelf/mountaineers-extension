@@ -1,8 +1,8 @@
 import {
   loadPeopleMapAndActivitiesFromLocalStorage,
   clearLocalStorage,
-} from './storage';
-import { Frontend_Messages, IMessage, Popup_Messages } from './types';
+} from '../shared/storage';
+import { Frontend_Messages, IMessage, Popup_Messages } from '../shared/types';
 
 console.log('background is alive');
 

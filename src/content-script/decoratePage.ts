@@ -1,6 +1,7 @@
-import { contactFromEntry } from './fetchParticipantList';
-import { GlobalState, activityStartDate } from './types';
 import tippy from 'tippy.js';
+import { GlobalState } from './globalState';
+import { activityStartDate } from '../shared/types';
+import { contactFromEntry } from './fetchParticipantList';
 
 // curries the peopleMap so we can access it at runtime
 export const rosterClickedCallBack =

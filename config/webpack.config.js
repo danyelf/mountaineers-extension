@@ -9,9 +9,9 @@ const PATHS = require('./paths');
 const config = (env, argv) =>
   merge(common, {
     entry: {
-      mountaineer: PATHS.src + '/mountaineer.ts',
-      background: PATHS.src + '/background.ts',
-      popup: PATHS.src + '/popup.ts',
+      mountaineer: PATHS.src + '/content-script/mountaineer.ts',
+      background: PATHS.src + '/service_worker/background.ts',
+      popup: PATHS.src + '/popup/popup.ts',
     },
     devtool: argv.mode === 'production' ? false : 'source-map',
   });

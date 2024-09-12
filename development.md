@@ -1,4 +1,6 @@
-# Commands
+# How the Code Does
+
+## Getting Started
 
 `npm install` to get dependences
 
@@ -6,7 +8,21 @@ Follow instructions at [Chrome Extension tutoral](https://developer.chrome.com/d
 Start the code running with `npm run watch`
 Go to [chrome://extensions](chrome://extensions) and hit `load unpacked.` Use the `build` directory.
 
-# Other browsers
+## Code Organization
+
+### Extension-specific Stuff
+
+An extension can have some or all of a content-script (the front page); a background service worker; and a popup that lives under the icon. There are a few subtleties to their lifecycles:
+
+- Only the service worker can talk to the icon (e.g. to change it)
+- Only the content-script can talk to the web
+- The popup gets re-initiatlized whenever someone clicks on it.
+
+And there's some weirdness with the ways that the popup communicates with the content-script (it can't initiate a conversation).
+
+Folder structure follows these, to try to help communicate what code is used where.
+
+## A Note on Other browsers
 
 Chrome uses `manifest.json`. `manifest_gecko` is for firefox; see [this stackoverflow](https://stackoverflow.com/questions/56271601/chrome-extensions-do-not-respect-browser-specific-settings)
 

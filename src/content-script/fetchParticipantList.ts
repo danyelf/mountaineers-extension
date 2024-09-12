@@ -10,15 +10,15 @@
 import {
   loadPeopleMapAndActivitiesFromLocalStorage,
   savePeopleMapAndActivitiesToLocalStorage,
-} from './storage';
+} from '../shared/storage';
 import {
   Activity,
   Frontend_Messages,
   PeopleActivityMap,
   RawActivity,
   rawToActvitiy,
-} from './types';
-import { asyncMap, difference } from './util';
+} from '../shared/types';
+import { asyncMap, difference } from '../shared/util';
 
 //     how do I find MY activities page?
 //          start w. https://www.mountaineers.org/

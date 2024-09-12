@@ -3,7 +3,8 @@ window.goatcounter = {
   no_onload: true,
   no_events: true,
 };
-import './count';
+import '../lib/count';
+import { Frontend_Messages } from '../shared/types';
 
 import {
   decorateAllContactsOnPage,
@@ -11,7 +12,7 @@ import {
   rosterClickedCallBack,
 } from './decoratePage';
 import { updateParticipantList } from './fetchParticipantList';
-import { Frontend_Messages, GlobalState } from './types';
+import { GlobalState } from './globalState';
 
 const globalState: GlobalState = new GlobalState(document.URL);
 

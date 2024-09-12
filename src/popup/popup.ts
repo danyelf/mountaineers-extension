@@ -5,7 +5,7 @@ import {
   IMessage,
   Popup_Messages,
   Popup_Response,
-} from './types';
+} from '../shared/types';
 
 (document.querySelector('#clearLocalStorage') as HTMLButtonElement).onclick =
   clearLocalStorage;
