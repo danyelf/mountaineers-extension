@@ -12,8 +12,11 @@ export function getSortedFilteredActivityList(
 
   const rv = [...activities].filter((a) => acceptActivity(a, globalState));
 
+  console.log(rv.length);
   // reverse time order
   rv.sort((a, b) => a.time - b.time);
+
+  console.log(rv.length);
 
   return rv;
 }
@@ -27,18 +30,26 @@ export function getSortedFilteredActivityList(
 function acceptActivity(a: Activity, globalState: GlobalState) {
   const checkboxes = globalState.checkboxState;
 
-  console.log('Check ', a, ' against ', checkboxes);
-
   // no data. accept it all
-  if (checkboxes.length === 0) return true;
+  if (checkboxes.length === 0) return true; //  a.category == 'course';
 
   const trueCheckboxes = globalState.checkboxState
     .filter((v) => v.checked)
     .map((m) => m.name.toString());
 
-  if (a.category in trueCheckboxes) return true;
+  console.log('Check ', a.category, ' against ', trueCheckboxes);
 
-  if (a.category in Object.keys(Activity_Types)) {
-    return Activity_Types.OTHER in trueCheckboxes;
+  if (trueCheckboxes.includes(a.category)) {
+    return true;
   }
+
+  const isOtherOk = trueCheckboxes.includes(Activity_Types.OTHER);
+  console.log('other checked', isOtherOk);
+
+  if (isOtherOk) {
+    const vals = Object.values(Activity_Types) as string[];
+    return !vals.includes(a.category);
+  }
+
+  return false;
 }

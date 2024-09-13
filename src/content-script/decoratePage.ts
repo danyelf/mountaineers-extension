@@ -146,6 +146,7 @@ function createUpdateHoverBadge(
   globalState: GlobalState
 ) {
   const trips = getSortedFilteredActivityList(globalState, name!);
+  console.log(trips.length);
 
   if (trips.length > 0) {
     badge.textContent = `${trips.length} activities together`;

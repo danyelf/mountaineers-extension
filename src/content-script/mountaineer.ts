@@ -40,8 +40,8 @@ if (!userName) {
 
   updateParticipantList(userName).then((peopleMap) => {
     if (peopleMap) {
-      queryCheckboxState(globalState);
       globalState.peopleMap = peopleMap;
+      queryCheckboxState(globalState);
       redecorate(globalState);
     } else {
       // user is not logged in
@@ -62,9 +62,9 @@ function queryCheckboxState(globalState: GlobalState) {
     (response: any) => {
       console.log('got an answer and its', response);
       globalState.checkboxState = response;
+      redecorate(globalState);
     }
   );
-  redecorate(globalState);
 }
 
 // TODO: FRAGILE
