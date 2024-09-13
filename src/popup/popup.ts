@@ -1,5 +1,5 @@
 import {
-  ActivityTypes,
+  Activity_Types,
   Frontend_Message,
   Frontend_Messages,
   IMessage,
@@ -23,7 +23,9 @@ chrome.runtime.sendMessage(
   statusCallback
 );
 
-// createCheckboxes();
+// these control which sorts of activities get shown
+// there are probably more I don't know about
+createCheckboxes();
 
 function statusCallback(response: any) {
   if (response) {
@@ -90,25 +92,33 @@ function setText(s: string) {
   (document.querySelector('#textblock') as HTMLDivElement).innerText = s;
 }
 
+type Activity_Record = {
+  activity: Activity_Types;
+  button: HTMLInputElement;
+};
+
 // checkboxes control which activities show
 function createCheckboxes() {
   const container = document.getElementById('activity_selector');
   if (container) {
-    const cbs = ActivityTypes.map((s) =>
-      createCheckbox(s, container as HTMLDivElement)
-    );
-    // this is the sort of task that React is designed for
-    cbs.forEach((box) => {
-      box.onchange = () => checkboxMessageSend(cbs);
+    const cbs = Object.values(Activity_Types).map((s) => {
+      return {
+        activity: s,
+        button: createCheckbox(s, container as HTMLDivElement),
+      };
+    });
+    cbs.forEach((cbRecord) => {
+      cbRecord.button.onchange = () => checkboxMessageSend(cbs);
     });
   }
 }
 
-function checkboxMessageSend(cbs: HTMLInputElement[]) {
-  const cbValues = cbs.map((cb) => {
+// sends the state of all the checkboxes to the background
+function checkboxMessageSend(cbs: Activity_Record[]) {
+  const cbValues = cbs.map((cbRecord) => {
     return {
-      name: cb.name,
-      checked: cb.checked,
+      name: cbRecord.activity,
+      checked: cbRecord.button.checked,
     };
   });
   chrome.runtime.sendMessage({

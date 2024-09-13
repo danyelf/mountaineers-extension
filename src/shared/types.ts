@@ -18,7 +18,17 @@ export interface Activity {
   time: number;
 }
 
-export const ActivityTypes = ['trip', 'event', 'course', 'other'];
+export enum Activity_Types {
+  TRIP = 'trip',
+  EVENT = 'event',
+  COURSE = 'course',
+  OTHER = 'other',
+}
+
+export type CheckboxStateRecord = {
+  name: Activity_Types;
+  checked: boolean;
+};
 
 export const rawToActvitiy = (raw: RawActivity): Activity => {
   return {
@@ -46,7 +56,8 @@ export enum Frontend_Messages {
   NO_LOGGED_IN_USER = 'NO_LOGGED_IN_USER', // complete
   PEOPLE_STATUS = 'PEOPLE_STATUS', // complete
   GET_ACTIVITIES = 'GET_ACTIVITIES', // working
-  GET_ACTIVITY_ROSTERS = 'GET_ACTIVITY_ROSTERS', // working
+  GET_ACTIVITY_ROSTERS = 'GET_ACTIVITY_ROSTERS',
+  QUERY_CHECKBOX = 'QUERY_CHECKBOX', // working
 }
 
 export interface IMessage {

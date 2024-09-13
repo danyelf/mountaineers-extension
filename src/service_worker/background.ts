@@ -2,16 +2,22 @@ import {
   loadPeopleMapAndActivitiesFromLocalStorage,
   clearLocalStorage,
 } from '../shared/storage';
-import { Frontend_Messages, IMessage, Popup_Messages } from '../shared/types';
+import {
+  CheckboxStateRecord,
+  Frontend_Messages,
+  IMessage,
+  Popup_Messages,
+} from '../shared/types';
 
 console.log('background is alive');
 
 let lastMessage: IMessage | null = null;
+let checkboxState: CheckboxStateRecord[] = [];
 
 async function actOnMessage(
   request: any,
   sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: IMessage) => void
+  sendResponse: (response?: any) => void
 ) {
   console.log('got sent', request);
 
@@ -55,6 +61,15 @@ async function actOnMessage(
       lastMessage = request;
       showCompleteState();
       break;
+    }
+
+    case Popup_Messages.FIX_CHECKBOX: {
+      checkboxState = request.checkboxes as CheckboxStateRecord[];
+      // should tuck this away in storage
+    }
+
+    case Frontend_Messages.QUERY_CHECKBOX: {
+      sendResponse(checkboxState);
     }
   }
 }

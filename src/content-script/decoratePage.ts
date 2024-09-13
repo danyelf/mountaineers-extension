@@ -2,6 +2,7 @@ import tippy from 'tippy.js';
 import { GlobalState } from './globalState';
 import { activityStartDate } from '../shared/types';
 import { contactFromEntry } from './fetchParticipantList';
+import { getSortedFilteredActivityList } from './peopleList';
 
 // curries the peopleMap so we can access it at runtime
 export const rosterClickedCallBack =
@@ -26,11 +27,11 @@ export const rosterClickedCallBack =
 
 // looks at this page for roster-contact
 // and annotates it
-export function decorateAllContactsOnPage(peoplemap: GlobalState) {
+export function decorateAllContactsOnPage(globalState: GlobalState) {
   const rosterEntries = document.querySelectorAll('.roster-contact');
   let count = 0;
   rosterEntries.forEach((rosterEntry) => {
-    count += processRosterElement(rosterEntry, peoplemap);
+    count += processRosterElement(rosterEntry, globalState);
   });
   if (count > 0)
     window.goatcounter.count({
@@ -40,9 +41,6 @@ export function decorateAllContactsOnPage(peoplemap: GlobalState) {
 }
 
 export function decoratePersonPage(globalState: GlobalState) {
-  const existingAnnotation = document.querySelector('.trips-in-common');
-  if (existingAnnotation) return;
-
   if (!globalState.peopleMap) {
     return;
   }
@@ -60,9 +58,9 @@ export function decoratePersonPage(globalState: GlobalState) {
   const profile = document.querySelector('.profile-details');
   const parent = profile?.parentNode;
 
-  const activities = globalState.peopleMap.get(person!);
+  const activities = getSortedFilteredActivityList(globalState, name!);
 
-  if (activities) {
+  if (activities.length > 0) {
     const htmlListItems = [...activities]
       .map(
         (act) =>
@@ -74,8 +72,14 @@ export function decoratePersonPage(globalState: GlobalState) {
       )
       .join('\n');
 
-    var div = document.createElement('div');
-    div.classList.add('trips-in-common');
+    var div = document.querySelector('.trips-in-common');
+    if (!div) {
+      div = document.createElement('div');
+      div.classList.add('trips-in-common');
+      parent?.insertBefore(div, profile!);
+    } else {
+      console.log('updating existing div');
+    }
 
     div.innerHTML = `
       <h6>Your Activities in Common</h6>
@@ -83,8 +87,6 @@ export function decoratePersonPage(globalState: GlobalState) {
       ${htmlListItems}
       </ul>
     `;
-
-    parent?.insertBefore(div, profile!);
   }
 
   window.goatcounter.count({
@@ -93,6 +95,7 @@ export function decoratePersonPage(globalState: GlobalState) {
   });
 }
 
+// enables you to click on the entries in the poopup list
 export const badgeClickCallback = (globalState: GlobalState) => {
   return (e: MouseEvent) => {
     const clickTarget = e.target! as Element;
@@ -112,43 +115,43 @@ function processRosterElement(
     return 0;
   }
 
-  let badge: HTMLParagraphElement;
-  const existingBadge = rosterEntry.querySelector(
+  let badge = rosterEntry.querySelector(
     `.mountaineers-annotation-participant.${name}`
-  );
-  if (existingBadge) return 0;
+  ) as HTMLParagraphElement | null;
+  //  if (existingBadge) return 0;
 
   // confirm there's a  linkable versionthere
   const profileLink = rosterEntry.querySelector('a');
   if (!profileLink) return 0;
 
-  badge = document.createElement('p');
-  badge.classList.add('mountaineers-annotation-participant');
-  if (name) {
-    badge.classList.add(name);
+  if (!badge) {
+    badge = document.createElement('p');
+    badge.classList.add('mountaineers-annotation-participant');
+    if (name) {
+      badge.classList.add(name);
+    }
+    rosterEntry.appendChild(badge);
+
+    // add a callback for the "most recently clicked" function
+    profileLink!.onclick = globalState.badgeClickCallback!;
   }
-  rosterEntry.appendChild(badge);
 
-  // add a callback for the "most recently clicked" function
-  profileLink!.onclick = globalState.badgeClickCallback!;
-
-  createHoverBadge(badge, name, globalState);
+  createUpdateHoverBadge(badge, name, globalState);
   return 1;
 }
 
-function createHoverBadge(
+function createUpdateHoverBadge(
   badge: HTMLParagraphElement,
   name: string,
   globalState: GlobalState
 ) {
-  const allTrips = globalState.peopleMap!.get(name!);
-  if (allTrips) {
-    badge.textContent = `${allTrips?.size} activities together`;
+  const trips = getSortedFilteredActivityList(globalState, name!);
+
+  if (trips.length > 0) {
+    badge.textContent = `${trips.length} activities together`;
 
     const tooltip = document.createElement('div');
     tooltip.classList.add('tooltip');
-    const trips = allTrips ? [...allTrips] : [];
-    trips.sort((a, b) => a.time - b.time);
 
     const numTrips = trips.length;
     const slicedTrips = trips.slice(0, 5);

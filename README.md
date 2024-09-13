@@ -28,7 +28,9 @@ The extension uses local browser storage. Right now, it only keeps one person's 
 
 This code is fragile -- as an extension, it can only see the structure of the page. It matches for a number of formatting quirks that are subject to change at any time.
 
-In a better world, the Mountaineers would replace all of this with a single database call. ;)
+I believe it also matches only on name (at the moment) -- "Alex Smith" refers to three people.
+
+In a better world, the Mountaineers would replace all of this with a single database call.
 
 ## A Note on Privacy
 

@@ -40,9 +40,9 @@ if (!userName) {
 
   updateParticipantList(userName).then((peopleMap) => {
     if (peopleMap) {
+      queryCheckboxState(globalState);
       globalState.peopleMap = peopleMap;
-      decorateAllContactsOnPage(globalState);
-      decoratePersonPage(globalState);
+      redecorate(globalState);
     } else {
       // user is not logged in
 
@@ -54,6 +54,18 @@ if (!userName) {
 chrome.runtime.onMessage.addListener((msgObj) => {
   console.log('I heard message ', msgObj);
 });
+
+function queryCheckboxState(globalState: GlobalState) {
+  console.log('asked for checkbox state');
+  chrome.runtime.sendMessage(
+    { message: Frontend_Messages.QUERY_CHECKBOX },
+    (response: any) => {
+      console.log('got an answer and its', response);
+      globalState.checkboxState = response;
+    }
+  );
+  redecorate(globalState);
+}
 
 // TODO: FRAGILE
 // returns the username iflogged in, null if not
@@ -110,4 +122,8 @@ function createPopupAddedObserver(globalState: GlobalState) {
     }
   );
   observer.observe(allBody!, observerConfig);
+}
+function redecorate(globalState: GlobalState) {
+  decorateAllContactsOnPage(globalState);
+  decoratePersonPage(globalState);
 }
