@@ -1,4 +1,4 @@
-import { Activity, PeopleActivityMap } from './types';
+import { Activity, CheckboxStateRecord, PeopleActivityMap } from './types';
 import { getStorage } from './storage_crossbrowser';
 
 export async function savePeopleMapAndActivitiesToLocalStorage(
@@ -55,5 +55,17 @@ export async function loadPeopleMapAndActivitiesFromLocalStorage(): Promise<{
   }
 
   const lastActivityCheck = storageResult.lastActivityCheck as number;
+
+  var checkboxState = storageResult.checkboxState as CheckboxStateRecord[];
+
   return { lastActivityCheck, peopleMap, cachedActivitiesList };
+}
+
+export async function saveCheckboxState(checkboxState: CheckboxStateRecord[]) {
+  await getStorage().set('checkboxState', checkboxState);
+}
+
+export async function loadCheckboxState() {
+  const storageResult = await getStorage().get('checkboxState');
+  return storageResult.checkboxState;
 }

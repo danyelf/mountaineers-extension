@@ -1,5 +1,7 @@
 import {
   Activity_Types,
+  CheckboxStateRecord,
+  DEFAULT_CHECKBOXES,
   Frontend_Message,
   Frontend_Messages,
   IMessage,
@@ -97,8 +99,27 @@ type Activity_Record = {
   button: HTMLInputElement;
 };
 
+var checkboxState: Map<Activity_Types, boolean>;
 // checkboxes control which activities show
 function createCheckboxes() {
+  chrome.runtime.sendMessage(
+    { message: Frontend_Messages.QUERY_CHECKBOX },
+    (response: any) => {
+      console.log('got an answer and its', response);
+      if (response && response.length > 0) {
+        checkboxState = new Map(
+          (response as CheckboxStateRecord[]).map((kv) => [kv.name, kv.checked])
+        );
+      } else {
+        checkboxState = DEFAULT_CHECKBOXES;
+      }
+      createCheckboxesWithState();
+    }
+  );
+}
+
+// continuation from createCheckboxes
+function createCheckboxesWithState() {
   const container = document.getElementById('activity_selector');
   if (container) {
     const cbs = Object.values(Activity_Types).map((s) => {
@@ -108,6 +129,7 @@ function createCheckboxes() {
       };
     });
     cbs.forEach((cbRecord) => {
+      cbRecord.button.checked = checkboxState.get(cbRecord.activity)!;
       cbRecord.button.onchange = () => checkboxMessageSend(cbs);
     });
   }

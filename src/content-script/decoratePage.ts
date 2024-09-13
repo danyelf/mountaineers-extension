@@ -2,7 +2,9 @@ import tippy from 'tippy.js';
 import { GlobalState } from './globalState';
 import { activityStartDate } from '../shared/types';
 import { contactFromEntry } from './fetchParticipantList';
-import { getSortedFilteredActivityList } from './peopleList';
+import { getSortedFilteredActivityList, getTrueCheckboxes } from './peopleList';
+
+const PAGE_LIMIT = 30;
 
 // curries the peopleMap so we can access it at runtime
 export const rosterClickedCallBack =
@@ -58,10 +60,14 @@ export function decoratePersonPage(globalState: GlobalState) {
   const profile = document.querySelector('.profile-details');
   const parent = profile?.parentNode;
 
-  const activities = getSortedFilteredActivityList(globalState, name!);
+  const activities = getSortedFilteredActivityList(globalState, person!);
 
-  if (activities.length > 0) {
-    const htmlListItems = [...activities]
+  const numTrips = activities.length;
+
+  if (numTrips > 0) {
+    const slicedTrips = activities.slice(0, PAGE_LIMIT);
+
+    const htmlListItems = [...slicedTrips]
       .map(
         (act) =>
           `
@@ -72,8 +78,14 @@ export function decoratePersonPage(globalState: GlobalState) {
       )
       .join('\n');
 
+    const otherString =
+      numTrips - PAGE_LIMIT > 0
+        ? `<span> and ${numTrips - PAGE_LIMIT} others</span>`
+        : '';
+
     var div = document.querySelector('.trips-in-common');
     if (!div) {
+      console.log('new div');
       div = document.createElement('div');
       div.classList.add('trips-in-common');
       parent?.insertBefore(div, profile!);
@@ -82,12 +94,25 @@ export function decoratePersonPage(globalState: GlobalState) {
     }
 
     div.innerHTML = `
-      <h6>Your Activities in Common</h6>
+      <h6 class="your-activities-in-common">Your Activities in Common</h6>
       <ul>
       ${htmlListItems}
       </ul>
+      ${otherString}
     `;
   }
+
+  const trueCheckboxes = getTrueCheckboxes(globalState);
+  let contentString = `Showing most recent ${PAGE_LIMIT} activities.`;
+  if (trueCheckboxes) {
+    contentString = `Showing only the most recent ${trueCheckboxes.join(
+      ', '
+    )} activities`;
+  }
+
+  tippy('.your-activities-in-common', {
+    content: contentString,
+  });
 
   window.goatcounter.count({
     path: 'personpage-annotated',
@@ -146,7 +171,6 @@ function createUpdateHoverBadge(
   globalState: GlobalState
 ) {
   const trips = getSortedFilteredActivityList(globalState, name!);
-  console.log(trips.length);
 
   if (trips.length > 0) {
     badge.textContent = `${trips.length} activities together`;

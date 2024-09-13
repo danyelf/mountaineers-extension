@@ -62,6 +62,7 @@ async function getActvities(activitiesUrl: string): Promise<Activity[]> {
 
 // given a roseter-contact, returns the core string
 // expect URL to look like https://www.mountaineers.org/members/bill-dittig?ajax_load=1
+// TODO: confirm this works for "foo-bar-1" as well as "foo-bar"
 export function contactFromEntry(rosterEntry: Element): string | null {
   try {
     const url = new URL(rosterEntry.querySelector('a')!.href);

@@ -1,6 +1,9 @@
+import { storage } from 'webextension-polyfill';
 import {
   loadPeopleMapAndActivitiesFromLocalStorage,
   clearLocalStorage,
+  loadCheckboxState,
+  saveCheckboxState,
 } from '../shared/storage';
 import {
   CheckboxStateRecord,
@@ -13,6 +16,12 @@ console.log('background is alive');
 
 let lastMessage: IMessage | null = null;
 let checkboxState: CheckboxStateRecord[] = [];
+
+loadCheckboxState().then((cbs) => {
+  if (cbs) {
+    checkboxState = cbs;
+  }
+});
 
 async function actOnMessage(
   request: any,
@@ -65,7 +74,7 @@ async function actOnMessage(
 
     case Popup_Messages.FIX_CHECKBOX: {
       checkboxState = request.checkboxes as CheckboxStateRecord[];
-      // should tuck this away in storage
+      saveCheckboxState(checkboxState);
     }
 
     case Frontend_Messages.QUERY_CHECKBOX: {

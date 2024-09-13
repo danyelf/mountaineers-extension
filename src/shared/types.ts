@@ -30,6 +30,13 @@ export type CheckboxStateRecord = {
   checked: boolean;
 };
 
+export const DEFAULT_CHECKBOXES = new Map([
+  [Activity_Types.TRIP, true],
+  [Activity_Types.EVENT, false],
+  [Activity_Types.COURSE, true],
+  [Activity_Types.OTHER, true],
+]);
+
 export const rawToActvitiy = (raw: RawActivity): Activity => {
   return {
     category: raw.category,
