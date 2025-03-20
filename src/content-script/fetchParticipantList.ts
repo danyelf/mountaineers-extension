@@ -48,15 +48,50 @@ function getMemberActivityHistoryUrl(memberActivitiesUrl: string): string {
   }
 }
 
+// Future activities pulls from a data-props attribute in the plain HTML response.
+async function getFutureActivities(activitiesUrl: string): Promise<Activity[]> {
+
+  const response = await fetch(activitiesUrl);
+  const text = await response.text(); // Get the HTML content as text
+
+  // Parse the HTML to find the links
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(text, 'text/html');
+
+  const rosterEntries = doc.querySelector('div.pat-react');
+  if (rosterEntries) {
+    const dataProps = rosterEntries.getAttribute('data-props');
+    if (dataProps) {
+      const sanitizedDataProps = dataProps.replace(/&quot;/g, '"');
+      const parsedData = JSON.parse(sanitizedDataProps);
+      const upcomingActivities = parsedData.upcoming;
+      const upcomingActivitiesMap = new Map<string, Activity>();
+
+      upcomingActivities.forEach((a: any) => {
+        const activity = rawToActvitiy(a);
+        upcomingActivitiesMap.set(activity.href, activity);
+      });
+      return Array.from(upcomingActivitiesMap.values());
+    }
+  }
+  return []
+}
+
 async function getActvities(activitiesUrl: string): Promise<Activity[]> {
   // update URL string: change from ..../member-activities to /member-activity-history.json
   // console.log('inspecting', activitiesUrl);
+
+  // This only fetches activity history
   const correctedUrl = getMemberActivityHistoryUrl(activitiesUrl);
   const response = await fetch(correctedUrl);
   const rawactivities = (await response.json()) as RawActivity[]; // Get the HTML content as text
   const activities = rawactivities
     .filter((a) => a.status === 'Registered')
     .map((a) => rawToActvitiy(a));
+
+  // Fetch future activities
+  const futureActivities = await getFutureActivities(activitiesUrl);
+  activities.push(...futureActivities);
   return activities;
 }
 
