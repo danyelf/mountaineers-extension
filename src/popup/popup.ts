@@ -1,3 +1,4 @@
+import { logError, logMessage } from '../lib/logMessaage';
 import {
   Activity_Types,
   CheckboxStateRecord,
@@ -16,7 +17,7 @@ try {
   chrome.runtime.onMessage.addListener(actOnMessage);
 } catch (e) {
   setText(e as string);
-  console.log(e);
+  logError(e);
 }
 
 // should probably ask the back-end for current status
@@ -31,10 +32,10 @@ createCheckboxes();
 
 function statusCallback(response: any) {
   if (response) {
-    console.log('Got response: ', response);
+    logMessage('Got response: ', response);
     gotMessage(response as IMessage);
   } else {
-    console.log('last error: ' + chrome.runtime.lastError);
+    logError('last error: ' + chrome.runtime.lastError);
   }
 }
 
@@ -43,7 +44,7 @@ async function actOnMessage(
   sender: chrome.runtime.MessageSender,
   sendResponse: (response?: Popup_Response) => void
 ) {
-  console.log('Got a message!', request);
+  logMessage('Got a message!', request);
   setText('got a message: ' + request.message);
   return gotMessage(request);
 }
@@ -80,12 +81,12 @@ function gotMessage(request: IMessage) {
 }
 
 function clearLocalStorage() {
-  console.log('clear local storage');
+  logMessage('clear local storage');
 
   chrome.runtime.sendMessage(
     { message: Popup_Messages.CLEAR_LOCAL_STORAGE },
     (response) => {
-      console.log('response:', response);
+      logMessage('response:', response);
     }
   );
 }
@@ -105,7 +106,7 @@ function createCheckboxes() {
   chrome.runtime.sendMessage(
     { message: Frontend_Messages.QUERY_CHECKBOX },
     (response: any) => {
-      console.log('got an answer and its', response);
+      logMessage('got an answer and its', response);
       if (response && response.length > 0) {
         checkboxState = new Map(
           (response as CheckboxStateRecord[]).map((kv) => [kv.name, kv.checked])

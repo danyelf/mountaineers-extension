@@ -11,8 +11,9 @@ import {
   IMessage,
   Popup_Messages,
 } from '../shared/types';
+import { logMessage } from '../lib/logMessaage';
 
-console.log('background is alive');
+logMessage('background is alive');
 
 let lastMessage: IMessage | null = null;
 let checkboxState: CheckboxStateRecord[] = [];
@@ -28,11 +29,11 @@ async function actOnMessage(
   sender: chrome.runtime.MessageSender,
   sendResponse: (response?: any) => void
 ) {
-  console.log('got sent', request);
+  logMessage('got sent', request);
 
   switch (request.message) {
     case Popup_Messages.GET_STATUS: {
-      console.log('I was asked for status, I replied with', lastMessage);
+      logMessage('I was asked for status, I replied with', lastMessage);
       //  this one is more a question than a comment
       sendResponse(lastMessage || { message: Frontend_Messages.HELLO_WORLD });
       break;
@@ -41,7 +42,7 @@ async function actOnMessage(
     case Popup_Messages.CLEAR_LOCAL_STORAGE: {
       lastMessage = request;
       const curStorage = await loadPeopleMapAndActivitiesFromLocalStorage();
-      console.log(curStorage);
+      logMessage(curStorage);
 
       await clearLocalStorage();
       const response = {

@@ -4,6 +4,7 @@ window.goatcounter = {
   no_events: true,
 };
 import '../lib/count';
+import { logMessage } from '../lib/logMessaage';
 import { Frontend_Messages } from '../shared/types';
 
 import {
@@ -12,6 +13,7 @@ import {
   rosterClickedCallBack,
 } from './decoratePage';
 import { updateParticipantList } from './fetchParticipantList';
+import { getLoggedInUser } from './fragile';
 import { GlobalState } from './globalState';
 
 const globalState: GlobalState = new GlobalState(document.URL);
@@ -19,7 +21,7 @@ const globalState: GlobalState = new GlobalState(document.URL);
 // is user logged in?
 const userName = checkLogin();
 if (!userName) {
-  console.log('User is not logged in; skipping from here.');
+  logMessage('User is not logged in; skipping from here.');
   chrome.runtime.sendMessage({
     message: Frontend_Messages.NO_LOGGED_IN_USER,
   });
@@ -46,40 +48,29 @@ if (!userName) {
     } else {
       // user is not logged in
 
-      console.log('User is not logged in; cannot retrieve activities.');
+      logMessage('User is not logged in; cannot retrieve activities.');
     }
   });
 }
 
 chrome.runtime.onMessage.addListener((msgObj) => {
-  console.log('I heard message ', msgObj);
+  logMessage('I heard message ', msgObj);
 });
 
 function queryCheckboxState(globalState: GlobalState) {
-  console.log('asked for checkbox state');
+  logMessage('asked for checkbox state');
   chrome.runtime.sendMessage(
     { message: Frontend_Messages.QUERY_CHECKBOX },
     (response: any) => {
-      console.log('got an answer and its', response);
+      logMessage('got an answer and its', response);
       globalState.checkboxState = response;
       redecorate(globalState);
     }
   );
 }
 
-// TODO: FRAGILE
-// returns the username iflogged in, null if not
 function checkLogin(): string | null {
-  const userMenu = document.querySelector('li.user span');
-  if (userMenu?.textContent?.includes('Log in / Join')) {
-    return null;
-  }
-  const loggedInUserA = document.querySelector(
-    'li.user li a'
-  ) as HTMLLinkElement;
-  const ref = loggedInUserA.href;
-  const usernameArr = ref.split('/');
-  return usernameArr[usernameArr.length - 1];
+  return getLoggedInUser();
 }
 
 // if the user clicks on a tab, a bunch of more things may appear -- some of which might be people!
@@ -97,7 +88,7 @@ function createRosterTabObserver(globalState: GlobalState) {
     const observer = new MutationObserver(rosterClickedCallBack(globalState));
     observer.observe(allTabs, observerConfig);
   } else {
-    console.log('this page does not have sections marked with div.tabs');
+    logMessage('this page does not have sections marked with div.tabs');
   }
 }
 

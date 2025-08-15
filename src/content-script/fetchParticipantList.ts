@@ -7,6 +7,7 @@
 // add to storage soimething like
 // [ { person:  person , [ {name: activity_name, url: activity_rul }]} ]
 
+import { logMessage } from '../lib/logMessaage';
 import {
   loadPeopleMapAndActivitiesFromLocalStorage,
   savePeopleMapAndActivitiesToLocalStorage,
@@ -108,7 +109,7 @@ export async function updateParticipantList(
   const { lastActivityCheck, peopleMap, cachedActivitiesList } =
     await loadPeopleMapAndActivitiesFromLocalStorage();
 
-  console.log(
+  logMessage(
     'read from cache',
     lastActivityCheck,
     peopleMap,
@@ -166,7 +167,7 @@ export async function updateParticipantList(
       if (act) {
         peopleMap.get(person)!.add(act);
       } else {
-        console.log("Confusing! Can't find activty", activityRoster.acthref);
+        logError("Confusing! Can't find activty", activityRoster.acthref);
       }
     });
   });

@@ -3,6 +3,7 @@ import { GlobalState } from './globalState';
 import { activityStartDate } from '../shared/types';
 import { contactFromEntry } from './fetchParticipantList';
 import { getSortedFilteredActivityList, getTrueCheckboxes } from './peopleList';
+import { logMessage } from '../lib/logMessaage';
 
 const PAGE_LIMIT = 30;
 
@@ -72,8 +73,8 @@ export function decoratePersonPage(globalState: GlobalState) {
         (act) =>
           `
       <li><span>${activityStartDate(act)} -</span> <a href="${act.href}">${
-            act.title
-          }</a></li>
+        act.title
+      }</a></li>
       `
       )
       .join('\n');
@@ -85,12 +86,12 @@ export function decoratePersonPage(globalState: GlobalState) {
 
     var div = document.querySelector('.trips-in-common');
     if (!div) {
-      console.log('new div');
+      logMessage('new div');
       div = document.createElement('div');
       div.classList.add('trips-in-common');
       parent?.insertBefore(div, profile!);
     } else {
-      console.log('updating existing div');
+      logMessage('updating existing div');
     }
 
     div.innerHTML = `
@@ -186,8 +187,8 @@ function createUpdateHoverBadge(
         (act) =>
           `
       <span>${activityStartDate(act)} -</span> <a href="${act.href}">${
-            act.title
-          }</a>
+        act.title
+      }</a>
       `
       )
       .join('<br/>');
