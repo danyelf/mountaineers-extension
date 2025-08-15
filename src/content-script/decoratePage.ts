@@ -1,13 +1,19 @@
 import tippy from 'tippy.js';
 import { GlobalState } from './globalState';
 import { activityStartDate } from '../shared/types';
-import { contactFromEntry } from './fetchParticipantList';
 import { getSortedFilteredActivityList, getTrueCheckboxes } from './peopleList';
-import { logMessage } from '../lib/logMessaage';
+import { logError, logEvent, logMessage } from '../lib/logMessaage';
+import {
+  fragile_badgeClickCallback,
+  fragile_contactFromEntry,
+  fragile_getMemberName,
+  fragile_getRosterContacts,
+  fragile_isRosterElement,
+} from './fragile';
 
 const PAGE_LIMIT = 30;
 
-// curries the peopleMap so we can access it at runtime
+// listens for changes to the tabs section
 export const rosterClickedCallBack =
   (globalState: GlobalState): MutationCallback =>
   (mutationList: MutationRecord[], observer: MutationObserver): void => {
@@ -16,31 +22,25 @@ export const rosterClickedCallBack =
     for (const mutation of mutationList) {
       mutation.addedNodes.forEach((node) => {
         const ele = node as Element;
-        if (ele.classList && ele.classList.contains('roster-contact')) {
+        if (fragile_isRosterElement(ele)) {
           count += processRosterElement(ele, globalState);
         }
       });
-      if (count > 0)
-        window.goatcounter.count({
-          path: 'decorate-roster',
-          event: true,
-        });
+      if (count > 0) {
+        logEvent('decorate-roster');
+      }
     }
   };
 
 // looks at this page for roster-contact
 // and annotates it
 export function decorateAllContactsOnPage(globalState: GlobalState) {
-  const rosterEntries = document.querySelectorAll('.roster-contact');
+  const rosterEntries = fragile_getRosterContacts();
   let count = 0;
   rosterEntries.forEach((rosterEntry) => {
     count += processRosterElement(rosterEntry, globalState);
   });
-  if (count > 0)
-    window.goatcounter.count({
-      path: 'decorate-event',
-      event: true,
-    });
+  if (count > 0) logEvent('decorate-event');
 }
 
 export function decoratePersonPage(globalState: GlobalState) {
@@ -48,22 +48,22 @@ export function decoratePersonPage(globalState: GlobalState) {
     return;
   }
 
-  let person: string | null;
-  if (document.URL.includes('/members/')) {
-    person = document.URL.split('/').slice(-1)[0];
-  } else {
-    person = globalState.mostRecentlyClickedName;
+  // mostRecentlyClickedName happens when you hover a badge
+  const person = fragile_getMemberName() || globalState.mostRecentlyClickedName;
+
+  if (!person) {
+    logError('No person found on page.');
+    return;
   }
 
-  if (!person) return;
-
-  // find the email
-  const profile = document.querySelector('.profile-details');
-  const parent = profile?.parentNode;
+  // find profile section
 
   const activities = getSortedFilteredActivityList(globalState, person!);
-
   const numTrips = activities.length;
+
+  // FRAGILE SECTION
+  const profile = document.querySelector('.profile-details');
+  const parent = profile?.parentNode;
 
   if (numTrips > 0) {
     const slicedTrips = activities.slice(0, PAGE_LIMIT);
@@ -115,27 +115,25 @@ export function decoratePersonPage(globalState: GlobalState) {
     content: contentString,
   });
 
-  window.goatcounter.count({
-    path: 'personpage-annotated',
-    event: true,
-  });
+  logEvent('personpage-annotated');
 }
 
 // enables you to click on the entries in the poopup list
 export const badgeClickCallback = (globalState: GlobalState) => {
-  return (e: MouseEvent) => {
-    const clickTarget = e.target! as Element;
-    const rosterEntry = clickTarget.parentElement;
-    const name = contactFromEntry(rosterEntry!);
-    globalState.mostRecentlyClickedName = name!;
-  };
+  return fragile_badgeClickCallback((name: string | null) => {
+    globalState.mostRecentlyClickedName = name;
+    logEvent('badge-clicked');
+  });
 };
 
+// FRAGILE FUNCTION
+// looks at the roster entry and adds a badge to it
+// returns 1 if it added a badge, 0 otherwise
 function processRosterElement(
   rosterEntry: Element,
   globalState: GlobalState
 ): number {
-  const name = contactFromEntry(rosterEntry);
+  const name = fragile_contactFromEntry(rosterEntry);
 
   if (!globalState.peopleMap || !name || name === globalState.me) {
     return 0;
@@ -166,6 +164,7 @@ function processRosterElement(
   return 1;
 }
 
+// FRAGILE FUNCTION
 function createUpdateHoverBadge(
   badge: HTMLParagraphElement,
   name: string,

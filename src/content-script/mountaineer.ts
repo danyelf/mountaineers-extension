@@ -13,7 +13,11 @@ import {
   rosterClickedCallBack,
 } from './decoratePage';
 import { updateParticipantList } from './fetchParticipantList';
-import { getLoggedInUser } from './fragile';
+import {
+  fragile_getTabsSection,
+  fragile_getLoggedInUser,
+  fragile_addObserverForPagePopup,
+} from './fragile';
 import { GlobalState } from './globalState';
 
 const globalState: GlobalState = new GlobalState(document.URL);
@@ -70,14 +74,14 @@ function queryCheckboxState(globalState: GlobalState) {
 }
 
 function checkLogin(): string | null {
-  return getLoggedInUser();
+  return fragile_getLoggedInUser();
 }
 
 // if the user clicks on a tab, a bunch of more things may appear -- some of which might be people!
 // we should annotate them
 // future optimization: is it worth searching the mutations, or might it be quick enough to just do the whole page and call it?
 function createRosterTabObserver(globalState: GlobalState) {
-  const allTabs = document.querySelector('div.tabs'); // NOT ROBUST -- hard codes tabs
+  const allTabs = fragile_getTabsSection();
   if (allTabs) {
     // I don't know how to specify that we want just the tab with "data-tab="roster_tab"
     // but I think this is ok
@@ -95,25 +99,9 @@ function createRosterTabObserver(globalState: GlobalState) {
 /**  Manages the overlay sheet.
  * Looks for a plone-modal-dialog that has appeared; if so, we can fire off the decorate person code. */
 function createPopupAddedObserver(globalState: GlobalState) {
-  const allBody = document.querySelector('body'); // NOT ROBUST -- hard codes tabs
-  const observerConfig: MutationObserverInit = {
-    subtree: true,
-    attributes: true,
-    attributeFilter: ['style'], // visibility = true is the new style
-  };
-  const observer = new MutationObserver(
-    (mut: MutationRecord[], o: MutationObserver) => {
-      mut.forEach((m) => {
-        const target = m.target as Element;
-        if (target.classList.contains('plone-modal-dialog')) {
-          // fires more than once, but not a big deal -- easy to skip out the second time
-          decoratePersonPage(globalState);
-        }
-      });
-    }
-  );
-  observer.observe(allBody!, observerConfig);
+  fragile_addObserverForPagePopup(() => decoratePersonPage(globalState));
 }
+
 function redecorate(globalState: GlobalState) {
   decorateAllContactsOnPage(globalState);
   decoratePersonPage(globalState);
