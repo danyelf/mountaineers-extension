@@ -1,4 +1,7 @@
-import { storage } from 'webextension-polyfill';
+// The BACKGROUND script is the service worker for the extension.
+// It handles messages from the popup and content scripts, manages the state,
+// and interacts with the browser's storage.
+
 import {
   loadPeopleMapAndActivitiesFromLocalStorage,
   clearLocalStorage,
@@ -12,6 +15,7 @@ import {
   Popup_Messages,
 } from '../shared/types';
 import { logMessage } from '../lib/logMessaage';
+import { onMessageWithResponse } from '../shared/sendMessage';
 
 logMessage('background is alive');
 
@@ -24,9 +28,11 @@ loadCheckboxState().then((cbs) => {
   }
 });
 
+onMessageWithResponse(actOnMessage);
+
 async function actOnMessage(
   request: any,
-  sender: chrome.runtime.MessageSender,
+  _sender: chrome.runtime.MessageSender,
   sendResponse: (response?: any) => void
 ) {
   logMessage('got sent', request);
@@ -83,8 +89,6 @@ async function actOnMessage(
     }
   }
 }
-
-chrome.runtime.onMessage.addListener(actOnMessage);
 
 // we can be  fancy!
 // https://developer.chrome.com/docs/extensions/reference/api/action

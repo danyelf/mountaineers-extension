@@ -5,6 +5,11 @@ window.goatcounter = {
 };
 import '../lib/count';
 import { logMessage } from '../lib/logMessaage';
+import {
+  onMessage,
+  sendMessage,
+  sendMessageWithCallback,
+} from '../shared/sendMessage';
 import { Frontend_Messages } from '../shared/types';
 
 import {
@@ -26,9 +31,7 @@ const globalState: GlobalState = new GlobalState(document.URL);
 const userName = checkLogin();
 if (!userName) {
   logMessage('User is not logged in; skipping from here.');
-  chrome.runtime.sendMessage({
-    message: Frontend_Messages.NO_LOGGED_IN_USER,
-  });
+  sendMessage(Frontend_Messages.NO_LOGGED_IN_USER);
 } else {
   globalState.me = userName;
 
@@ -42,7 +45,7 @@ if (!userName) {
   createRosterTabObserver(globalState);
   createPopupAddedObserver(globalState);
 
-  chrome.runtime.sendMessage({ message: Frontend_Messages.HELLO_WORLD });
+  sendMessage(Frontend_Messages.HELLO_WORLD);
 
   updateParticipantList(userName).then((peopleMap) => {
     if (peopleMap) {
@@ -57,20 +60,19 @@ if (!userName) {
   });
 }
 
-chrome.runtime.onMessage.addListener((msgObj) => {
+onMessage((msgObj) => {
   logMessage('I heard message ', msgObj);
 });
 
+// asks the back end for the checkbox state
+// and then updates the global state and redecorates the page
 function queryCheckboxState(globalState: GlobalState) {
   logMessage('asked for checkbox state');
-  chrome.runtime.sendMessage(
-    { message: Frontend_Messages.QUERY_CHECKBOX },
-    (response: any) => {
-      logMessage('got an answer and its', response);
-      globalState.checkboxState = response;
-      redecorate(globalState);
-    }
-  );
+  sendMessageWithCallback(Frontend_Messages.QUERY_CHECKBOX, (response: any) => {
+    logMessage('got an answer and its', response);
+    globalState.checkboxState = response;
+    redecorate(globalState);
+  });
 }
 
 function checkLogin(): string | null {

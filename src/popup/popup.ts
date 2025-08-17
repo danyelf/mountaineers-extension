@@ -1,5 +1,11 @@
 import { logError, logMessage } from '../lib/logMessaage';
 import {
+  getLastError,
+  onMessage,
+  sendMessage,
+  sendMessageWithCallback,
+} from '../shared/sendMessage';
+import {
   Activity_Types,
   CheckboxStateRecord,
   DEFAULT_CHECKBOXES,
@@ -14,17 +20,14 @@ import {
   clearLocalStorage;
 
 try {
-  chrome.runtime.onMessage.addListener(actOnMessage);
+  onMessage(routeFrontendMessage);
 } catch (e) {
   setText(e as string);
   logError(e);
 }
 
 // should probably ask the back-end for current status
-chrome.runtime.sendMessage(
-  { message: Popup_Messages.GET_STATUS },
-  statusCallback
-);
+sendMessageWithCallback(Popup_Messages.GET_STATUS, statusCallback);
 
 // these control which sorts of activities get shown
 // there are probably more I don't know about
@@ -33,23 +36,16 @@ createCheckboxes();
 function statusCallback(response: any) {
   if (response) {
     logMessage('Got response: ', response);
-    gotMessage(response as IMessage);
+    routeFrontendMessage(response as IMessage);
   } else {
-    logError('last error: ' + chrome.runtime.lastError);
+    logError('last error: ' + getLastError());
   }
 }
 
-async function actOnMessage(
-  request: IMessage,
-  sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: Popup_Response) => void
-) {
+function routeFrontendMessage(request: IMessage) {
   logMessage('Got a message!', request);
   setText('got a message: ' + request.message);
-  return gotMessage(request);
-}
 
-function gotMessage(request: IMessage) {
   switch (request.message) {
     case Frontend_Messages.NO_LOGGED_IN_USER: {
       setText('User not logged in. Cannot read activities.');
@@ -83,12 +79,9 @@ function gotMessage(request: IMessage) {
 function clearLocalStorage() {
   logMessage('clear local storage');
 
-  chrome.runtime.sendMessage(
-    { message: Popup_Messages.CLEAR_LOCAL_STORAGE },
-    (response) => {
-      logMessage('response:', response);
-    }
-  );
+  sendMessageWithCallback(Popup_Messages.CLEAR_LOCAL_STORAGE, (response) => {
+    logMessage('response:', response);
+  });
 }
 
 function setText(s: string) {
@@ -100,23 +93,22 @@ type Activity_Record = {
   button: HTMLInputElement;
 };
 
+function checkboxCallback(response: any) {
+  logMessage('got an answer to checkbox Q and its', response);
+  if (response && response.length > 0) {
+    checkboxState = new Map(
+      (response as CheckboxStateRecord[]).map((kv) => [kv.name, kv.checked])
+    );
+  } else {
+    checkboxState = DEFAULT_CHECKBOXES;
+  }
+  createCheckboxesWithState();
+}
+
 var checkboxState: Map<Activity_Types, boolean>;
 // checkboxes control which activities show
 function createCheckboxes() {
-  chrome.runtime.sendMessage(
-    { message: Frontend_Messages.QUERY_CHECKBOX },
-    (response: any) => {
-      logMessage('got an answer and its', response);
-      if (response && response.length > 0) {
-        checkboxState = new Map(
-          (response as CheckboxStateRecord[]).map((kv) => [kv.name, kv.checked])
-        );
-      } else {
-        checkboxState = DEFAULT_CHECKBOXES;
-      }
-      createCheckboxesWithState();
-    }
-  );
+  sendMessageWithCallback(Frontend_Messages.QUERY_CHECKBOX, checkboxCallback);
 }
 
 // continuation from createCheckboxes
@@ -144,8 +136,7 @@ function checkboxMessageSend(cbs: Activity_Record[]) {
       checked: cbRecord.button.checked,
     };
   });
-  chrome.runtime.sendMessage({
-    message: Popup_Messages.FIX_CHECKBOX,
+  sendMessage(Popup_Messages.FIX_CHECKBOX, {
     checkboxes: cbValues,
   });
 }

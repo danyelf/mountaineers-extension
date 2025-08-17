@@ -8,6 +8,7 @@
 // [ { person:  person , [ {name: activity_name, url: activity_rul }]} ]
 
 import { logError, logMessage } from '../lib/logMessaage';
+import { sendMessage } from '../shared/sendMessage';
 import {
   loadPeopleMapAndActivitiesFromLocalStorage,
   savePeopleMapAndActivitiesToLocalStorage,
@@ -54,8 +55,7 @@ export async function updateParticipantList(
   if (Date.now() - lastActivityCheck < ONE_HOUR) {
     // data is pretty new
 
-    chrome.runtime.sendMessage({
-      message: Frontend_Messages.PEOPLE_STATUS,
+    sendMessage(Frontend_Messages.PEOPLE_STATUS, {
       numPeople: peopleMap.size,
       numActivities: cachedActivitiesList.length,
       lastActivityCheck: lastActivityCheck,
@@ -68,9 +68,7 @@ export async function updateParticipantList(
 
   const currentTime = Date.now();
 
-  chrome.runtime.sendMessage({
-    message: Frontend_Messages.GET_ACTIVITIES,
-  });
+  sendMessage(Frontend_Messages.GET_ACTIVITIES);
 
   const liveActivitesList = await fragile_getActivities(me);
 
@@ -81,9 +79,8 @@ export async function updateParticipantList(
   // should be set.difference, but not in firefox
   const toReadSet = difference(liveActivitySet, cachedActivitySet);
 
-  chrome.runtime.sendMessage({
-    message: Frontend_Messages.GET_ACTIVITY_ROSTERS,
-    numActivities: liveActivitesList.length,
+  sendMessage(Frontend_Messages.GET_ACTIVITY_ROSTERS, {
+    numMessages: liveActivitesList.length,
   });
 
   // WAVE 2: get storage, get activity URLs. Uses Promise.all. Does it parallelize?
@@ -111,8 +108,7 @@ export async function updateParticipantList(
     liveActivitesList
   );
 
-  chrome.runtime.sendMessage({
-    message: Frontend_Messages.PEOPLE_STATUS,
+  sendMessage(Frontend_Messages.PEOPLE_STATUS, {
     numPeople: peopleMap.size,
     numActivities: liveActivitesList.length,
     lastActivityCheck: lastActivityCheck,

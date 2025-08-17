@@ -67,6 +67,8 @@ export enum Frontend_Messages {
   QUERY_CHECKBOX = 'QUERY_CHECKBOX', // working
 }
 
+export type MessageBody = { [key: string]: any } | undefined;
+
 export interface IMessage {
   message: string;
 }

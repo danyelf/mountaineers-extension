@@ -52,7 +52,7 @@ export function decoratePersonPage(globalState: GlobalState) {
   const person = fragile_getMemberName() || globalState.mostRecentlyClickedName;
 
   if (!person) {
-    logError('No person found on page.');
+    logMessage('No person found on page', document.URL);
     return;
   }
 
